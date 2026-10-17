@@ -1,0 +1,19 @@
+# Claves de firma y material de distribución restringido (NUNCA publicar)
+*.key
+*.pub
+entitlement*.json
+manifest-*.json
+manifest-arm64.json
+
+# Paquetes y artefactos: se publican como assets de Releases, no en git
+*.deb
+*.crbk
+dist/
+staging/
+build/
+
+# Entornos y residuos locales
+.venv/
+__pycache__/
+*.log
+.DS_Store
