@@ -329,7 +329,7 @@ sequenceDiagram
     participant OpenAI as OpenAI Auth (auth.openai.com)
 
     Usuario->>Web: Pulsa "Añadir suscripción" -> "Suscripción ChatGPT Plus / Pro"
-    Usuario->>Web: Pulsa "Iniciar vinculación automática con ChatGPT" (confirma contraseña)
+    Usuario->>Web: Pulsa "Iniciar vinculación automática con ChatGPT" (sesión web activa)
     Web->>Backend: POST /api/assistant/plan/oauth/start (method="device")
     Backend->>OpenAI: POST /api/accounts/deviceauth/usercode
     OpenAI-->>Backend: Devuelve user_code (ej. ABCD-1234) y device_auth_id
@@ -350,7 +350,7 @@ sequenceDiagram
 1. En la aplicación web de Correduría, vaya a la pestaña **Configuración** (tarjeta *Modelos de IA y Suscripciones*) o abra el asistente flotante / **Consultar asistente** y pulse el botón **Añadir suscripción** (o el icono ⚙️ en el chat).
 2. En la ventana emergente, asegúrese de que esté seleccionada la opción **Suscripción ChatGPT Plus / Pro**.
 3. En **Método de autorización automática**, deje seleccionado **Código web automático (Recomendado · funciona en local o servidor en red)** (o elija *Navegador en este mismo equipo* si está abriendo la web directamente en la misma máquina donde corre el servidor).
-4. Pulse **Iniciar vinculación automática con ChatGPT** e introduzca la contraseña de su cuenta de Correduría.
+4. Pulse **Iniciar vinculación automática con ChatGPT** (se inicia directamente al disponer ya de sesión web activa).
 5. La ventana emergente mostrará un **código único de vinculación** (por ejemplo, `ABCD-1234`):
    * Pulse **1. Copiar código**.
    * Pulse **2. Abrir página de autorización de OpenAI** (se abrirá `https://auth.openai.com/codex/device` en una pestaña nueva).
@@ -478,17 +478,20 @@ Si el servidor original queda destruido y se dispone de un nuevo equipo con Ubun
 
 ---
 
-### 12.5 Seguridad operativa en red y tratamiento de datos
+### 12.5 Seguridad operativa en red, dispositivos móviles y tratamiento de datos
 
-1. **Acceso exclusivo por HTTPS**:
-   * Cuando acceda a la plataforma desde otros dispositivos de la oficina (portátiles, tablets), la conexión debe circular siempre a través de un proxy local con cifrado HTTPS (p. ej., mediante Caddy o Nginx con certificado TLS de la red local). Nunca transmita contraseñas ni descargue ficheros confidenciales por HTTP plano en la red corporativa.
-2. **Uso de la seudonimización y visualización temporal**:
-   * Acostúmbrese a operar en el día a día utilizando los códigos de cliente.
-   * Desbloquee los datos personales (*Ver datos*) únicamente cuando sea imprescindible para la gestión de un siniestro, emisión o suplemento.
-3. **Revisión obligatoria de paquetes de exportación (RGPD)**:
+1. **Acceso exclusivo por HTTPS en escritorio, tablet y móvil**:
+   * Cuando acceda a la plataforma desde otros dispositivos de la oficina o en movilidad (portátiles, tablets, teléfonos móviles), la conexión debe circular siempre a través de un proxy local con cifrado HTTPS (p. ej., mediante Caddy o Tailscale con certificado TLS). Nunca transmita contraseñas ni descargue ficheros confidenciales por HTTP plano en la red corporativa.
+2. **Uso de la seudonimización, Vista 360° y bloqueo inmediato de la Bóveda (`🔒 / 🔓`)**:
+   * Acostúmbrese a operar en el día a día utilizando los códigos de cliente tanto en la vista de **Tarjetas** como en **Tabla**.
+   * Desbloquee los datos personales (*Ver datos* o *Desbloquear identidad ahora* en la *Vista 360°*) únicamente cuando sea imprescindible para la gestión de un siniestro, emisión o suplemento.
+   * Si trabaja desde una tablet o teléfono móvil en presencia de terceros, pulse el botón **Bloquear** en el indicador superior de bóveda (`🔓 CLI-...`) en cuanto termine la consulta para revocar en el acto el permiso temporal de 5 minutos.
+3. **Preferencias visuales locales (Modo Claro / Oscuro y Vista de Dispositivo)**:
+   * El selector de tema (`🌙 / ☀️`) en la barra superior almacena únicamente la preferencia visual (`light` / `dark`) en el navegador local sin afectar a la configuración del servidor ni exponer datos.
+4. **Revisión obligatoria de paquetes de exportación (RGPD)**:
    * Al tramitar una solicitud de portabilidad o acceso generando el archivo `client-data-export.zip`, revise detenidamente su contenido antes de entregarlo al solicitante.
    * El ZIP contiene datos y documentos en texto claro; asegúrese de entregarlo por canales cifrados o con contraseña acordada con el asegurado.
-4. **Política de retención de memoria del asistente**:
+5. **Política de retención de memoria del asistente**:
    * Si utiliza el asistente con regularidad, configure una política de retención en días (p. ej., 90 o 180 días) en lugar de conservar historiales de forma indefinida, en cumplimiento con el principio de minimización de datos del RGPD.
 
 ---

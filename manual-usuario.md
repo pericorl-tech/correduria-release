@@ -52,28 +52,51 @@ Para consultar los parámetros técnicos, requisitos de red, proveedores o polí
   4. Al abrir el enlace (desde un navegador con acceso a la red de la instalación), defina la nueva contraseña. Las sesiones activas previas quedarán automáticamente cerradas.
 * **Configuración asociada**: [Manual de Configuración · Sección 2 (Correo Saliente SMTP)](manual-configuracion.md#2-correo-saliente-smtp).
 
-### 1.4 Acceso protegido temporal a datos reservados («Proof»)
+### 1.4 Acceso protegido temporal a datos reservados («Proof») e Indicador de Bóveda en Vivo
 * **Para qué sirve**: Protección de datos sensibles (NIF, nombre, teléfono, domicilio, números contractuales y documentos originales). Las pantallas habituales muestran únicamente códigos de cliente (seudonimizados) y ramos.
-* **Cómo se usa**: Cuando pulse en *Ver datos*, *Documentos*, *Histórico contractual*, *Privacidad* o tareas documentales del Asistente, la aplicación solicitará su contraseña actual. Al verificarla, se concede un **acceso temporal de 5 minutos** exclusivo para esa ficha. Transcurrido ese tiempo, el modal se cerrará y los datos privados se retirarán de pantalla.
+* **Cómo se usa**: Cuando pulse en *Ver datos*, *Desbloquear identidad ahora* (en la Vista 360°), *Documentos*, *Histórico contractual*, *Privacidad* o tareas documentales del Asistente, la aplicación solicitará su contraseña actual. Al verificarla, se concede un **acceso temporal de 5 minutos** exclusivo para esa ficha.
+* **Indicador de Bóveda en la barra superior (`🔒 / 🔓`)**:
+  * Mientras ninguna ficha esté desbloqueada, la barra superior muestra el estado `🔒 Datos protegidos`.
+  * Cuando desbloquea una ficha, el indicador pasa a estado activo en ámbar (`🔓 CLI-000001 (295s)`), mostrando una cuenta atrás en vivo y un botón **Bloquear** para cerrar manualmente el acceso temporal en cualquier instante sin esperar a que agote los 5 minutos.
 
 ---
 
-## 2. Estructura General de la Interfaz
+## 2. Estructura General de la Interfaz y Diseño Adaptable (Escritorio, Tablet y Móvil)
 
-Una vez iniciada la sesión, la cabecera superior muestra el logotipo, el nombre del negocio, la versión del sistema (p. ej., `v0.8.2`) y el botón *Cerrar sesión*.
+La plataforma cuenta con una arquitectura **App Shell responsiva** diseñada para ofrecer una experiencia ergonómica tanto en monitores de oficina como en tablets y teléfonos móviles:
 
-La barra principal de navegación contiene las siguientes pestañas:
-1. **Resumen**: Panel métrico de vencimientos inmediatos y avisos.
-2. **Calendario**: Vista mensual y diaria interactiva de fechas límite de periodos.
-3. **Avisos**: Bandeja de alertas internas y envíos por correo electrónico al corredor.
-4. **Clientes**: Fichero de asegurados (particulares, autónomos y empresas).
-5. **Pólizas**: Control de contratos, periodos de vigencia y plantillas de comisión.
-6. **Documentos**: Repositorio de ficheros PDF cifrados (autorizaciones, pólizas y anexos).
-7. **Configuración**: Parámetros de numeración, catálogos, condiciones económicas y cuenta.
-8. **Backups**: Ejecución manual y descarga de copias de seguridad cifradas.
-9. **Privacidad**: Tramitación de derechos de protección de datos y exportación de fichas.
-10. **Mantenimiento**: Diagnóstico de salud, sondas técnicas y canal de actualizaciones.
-11. **Consultar asistente** (botón destacado): Ventana modal del copiloto de consulta (con o sin IA).
+### 2.1 Menú lateral categorizado (`Sidebar`)
+Organiza los módulos del negocio en tres áreas operativas claras, mostrando en su cabecera el logotipo, el nombre de la correduría y la versión activa (p. ej., `v0.8.2`), y en el pie el usuario activo junto al botón *Cerrar sesión*:
+1. **Control y Vencimientos**:
+   * **Resumen (`📊`)**: Panel ejecutivo con tarjetas KPI de vencimientos inmediatos y avisos.
+   * **Calendario (`📅`)**: Vista mensual y diaria interactiva en doble columna (calendario + detalle lateral).
+   * **Avisos (`🔔`)**: Bandeja de alertas internas y envíos por correo electrónico al corredor.
+2. **Cartera y Documentación**:
+   * **Clientes (`👥`)**: Fichero de asegurados con contador en vivo de clientes activos, vista en tarjetas o tabla y panel lateral *Vista 360°*.
+   * **Pólizas (`🛡️`)**: Control de contratos, periodos de vigencia y plantillas de comisión con vista en tarjetas o tabla.
+   * **Documentos (`📄`)**: Repositorio de ficheros PDF cifrados (autorizaciones, pólizas y anexos).
+3. **Inteligencia y Sistema**:
+   * **Configuración (`⚙️`)**: Parámetros de numeración, catálogos, condiciones económicas, suscripciones de IA y seguridad de cuenta.
+   * **Backups (`💾`)**: Ejecución manual, política y descarga de copias de seguridad cifradas.
+   * **Privacidad (`⚖️`)**: Tramitación de derechos RGPD y exportación de fichas en ZIP.
+   * **Mantenimiento (`🛠️`)**: Diagnóstico de salud, sondas técnicas y canal de actualizaciones.
+   * **Consultar asistente (`🤖`)**: Acceso al asistente de consulta documental e histórica.
+
+### 2.2 Barra superior de herramientas (`Topbar`)
+Situada de forma fija en la parte superior del área de trabajo, incorpora:
+* **Miga de pan contextual**: Indica el bloque operativo y el título de la vista actual.
+* **Buscador rápido global (`Ctrl+K`)**: Permite buscar instantáneamente desde cualquier pantalla por código de cliente, compañía aseguradora o ramo de seguro, abriendo directamente la *Vista 360°* del cliente o filtrando sus pólizas.
+* **Indicador de Bóveda de Seguridad (`🔒 / 🔓`)**: Muestra el estado de bloqueo de identidades y permite revocar accesos temporales con un clic (*Bloquear*).
+* **Conmutador de vista por dispositivo (`🖥️ / 📱 / 📲`)**: Permite alternar entre la vista automática/escritorio (`🖥️`), la vista optimizada de Tablet (`📱`) y la vista de Teléfono Móvil (`📲`).
+* **Selector de tema Claro / Oscuro (`🌙 / ☀️`)**: Conmuta entre el tema claro corporativo y el modo oscuro de alto contraste, recordando su preferencia en el navegador.
+
+### 2.3 Comportamiento en Escritorio, Tablet y Teléfono Móvil
+* **Versión Escritorio (`> 1024px`)**: Menú lateral fijo a la izquierda, vista dividida a dos columnas en el Calendario y formularios de alta/configuración en cuadrícula de dos columnas.
+* **Versión Tablet (`721px – 1024px` o modo `📱`)**: El menú lateral se convierte en un cajón deslizable (*Slide-over Drawer*) que se abre con el botón `☰` y se cierra tocando el fondo oscurecido (*backdrop*) o al elegir cualquier sección, liberando el 100 % del ancho para tablas y tarjetas.
+* **Versión Móvil (`≤ 720px` o modo `📲`)**:
+  * **Barra de navegación inferior fija (`Bottom Nav`)**: 5 botones táctiles permanentes para manejo con el pulgar (*Resumen*, *Calendario*, *Clientes*, *Pólizas* y *Más* para abrir el menú completo).
+  * **Transformación automática de tablas en tarjetas**: Cuando se activa la vista `📋 Tabla` en un móvil, cada fila se transforma automáticamente en una tarjeta vertical apilada con etiquetas a la izquierda y valores a la derecha, evitando el desplazamiento horizontal.
+  * **Diálogos y paneles estilo hoja inferior (*Bottom Sheet*)**: Las ventanas modales y la *Vista 360°* emergen desde el borde inferior de la pantalla para facilitar la lectura e interacción táctil.
 
 ---
 
@@ -116,11 +139,12 @@ Disponible de inmediato.
 
 ### 4.3 Cómo se usa
 1. **Navegación temporal**: Utilice los botones *Mes anterior*, *Mes siguiente* o el selector de mes/año (`AAAA-MM`).
-2. **Rejilla mensual**: Cada celda muestra el día del mes y una etiqueta con el número de vencimientos previstos para esa jornada. El día de hoy aparece resaltado en el calendario.
-3. **Selección de día**: Al pulsar sobre un día concreto, la cuadrícula resalta la celda seleccionada y el listado inferior se actualiza para mostrar exclusivamente las pólizas de ese día exacto.
-4. **Ver todo el mes**: Pulse *Ver todo el mes* para regresar a la lista de todas las pólizas del mes completo.
-5. **Filtros combinados**: Puede combinar la navegación del calendario con los desplegables de *Compañía*, *Ramo* y *Cliente*.
-6. **Paginación**: Si el resultado supera 50 registros, se habilitan los botones *Página anterior* y *Página siguiente*.
+2. **Disposición dividida en Escritorio y apilada en Tablet/Móvil**: En monitores de escritorio, la cuadrícula mensual se muestra a la izquierda y el listado detallado de pólizas del día o mes seleccionado a la derecha; en tablets y móviles se apilan verticalmente con celdas táctiles compactas.
+3. **Rejilla mensual**: Cada celda muestra el día del mes y una etiqueta con el número de vencimientos previstos para esa jornada. El día de hoy aparece resaltado en el calendario.
+4. **Selección de día**: Al pulsar sobre un día concreto, la cuadrícula resalta la celda seleccionada y el listado lateral/inferior se actualiza para mostrar exclusivamente las pólizas de ese día exacto.
+5. **Ver todo el mes**: Pulse *Ver todo el mes* para regresar a la lista de todas las pólizas del mes completo.
+6. **Filtros combinados**: Puede combinar la navegación del calendario con los desplegables de *Compañía*, *Ramo* y *Cliente*.
+7. **Paginación**: Si el resultado supera 50 registros, se habilitan los botones *Página anterior* y *Página siguiente*.
 
 ### 4.4 Configuración requerida
 * [Manual de Configuración · Sección 6 (Política de Vencimientos y Avisos)](manual-configuracion.md#6-política-de-vencimientos-y-avisos-notificaciones) para la zona horaria de cálculo.
@@ -175,7 +199,12 @@ Permite administrar las fichas de los asegurados del negocio, clasificadas en **
 Disponible de inmediato.
 
 ### 6.3 Cómo se usa
-1. **Crear nuevo cliente**:
+1. **Conmutador de vista (`🗂️ Tarjetas` / `📋 Tabla`)**:
+   * En la barra de herramientas superior puede alternar entre la vista en cuadrícula de **Tarjetas** y la vista compacta en **Tabla**. En dispositivos móviles, la tabla se convierte automáticamente en tarjetas apiladas verticales.
+2. **Panel Lateral «Vista 360°» de Cliente**:
+   * Pulse **Vista 360°** en cualquier cliente (o selecciónelo desde el buscador global `Ctrl+K`) para abrir un panel lateral consolidado sin abandonar la pantalla actual.
+   * Muestra en un único lugar el estado de la ficha, los datos identificativos protegidos (con botón *Desbloquear identidad ahora* si están bloqueados), todos los periodos de póliza registrados y los originales PDF con descarga directa.
+3. **Crear nuevo cliente**:
    * Pulse *Nuevo cliente*.
    * Seleccione el tipo (*Particular*, *Autónomo* o *Empresa*).
    * **Código de cliente**: Si el sistema está en modo automático, puede dejarlo vacío para generar la secuencia configurada (p. ej., `CLI-000001`), o introducir un código manual si está permitido.
@@ -183,11 +212,11 @@ Disponible de inmediato.
    * Para particulares y autónomos se habilitan campos específicos: *Fecha de nacimiento* y *Fecha del carnet de conducir*. En empresas se ocultan automáticamente.
    * **Datos adicionales**: Campo de texto libre para introducir un objeto JSON válido (p. ej., `{"actividad_cnae": "6201", "preferencia_contacto": "tardes"}`).
    * Pulse *Crear ficha*. El código de cliente asignado **nunca podrá modificarse**.
-2. **Consultar y editar datos protegidos**:
+4. **Consultar y editar datos protegidos**:
    * En la ficha correspondiente, pulse *Ver datos*.
-   * Introduzca su contraseña actual. Tendrá acceso de visualización y edición durante 5 minutos.
+   * Introduzca su contraseña actual. Tendrá acceso de visualización y edición durante 5 minutos (visible en el indicador `🔓` de la barra superior).
    * Guarde los cambios mediante el botón *Guardar datos protegidos*.
-3. **Archivar / Reactivar**:
+5. **Archivar / Reactivar**:
    * Si un cliente causa baja o finaliza su relación comercial, pulse *Archivar*.
    * La ficha dejará de aparecer en los listados habituales y no generará nuevos avisos de vencimiento.
    * Al marcar la casilla *Mostrar archivados* de la barra superior, podrá localizarlo y pulsar *Reactivar*.
@@ -208,7 +237,9 @@ Registro y control de las pólizas de seguros intermediadas. Cada póliza cuenta
 Disponible de inmediato.
 
 ### 7.3 Cómo se usa
-1. **Alta de nueva póliza**:
+1. **Conmutador de vista (`🗂️ Tarjetas` / `📋 Tabla`)**:
+   * Al igual que en Clientes, la barra superior permite alternar entre vista en **Tarjetas** o **Tabla** (adaptable automáticamente en móvil).
+2. **Alta de nueva póliza**:
    * En la pestaña *Pólizas*, pulse *Nueva póliza*.
    * Seleccione el **Cliente** (por su código).
    * Seleccione la **Compañía** aseguradora y el **Tipo de seguro (Ramo)**.
@@ -217,12 +248,12 @@ Disponible de inmediato.
    * **Número contractual (protegido)**: Número de póliza oficial de la compañía. Se almacena cifrado en la base de datos.
    * **Datos adicionales protegidos**: Objeto JSON opcional para coberturas, matrícula, capital asegurado, etc.
    * Pulse *Guardar póliza*.
-2. **Renovar periodo**:
+3. **Renovar periodo**:
    * Cuando venza un periodo o se negocie la prórroga, localice la póliza y pulse *Renovar*.
    * El sistema precarga la compañía, el ramo y los datos contractuales.
    * Ajuste las nuevas fechas de vigencia y, si procede, seleccione una nueva versión de plantilla económica.
    * Pulse *Crear nuevo periodo*. El histórico anterior se conserva intacto.
-3. **Consultar histórico contractual**:
+4. **Consultar histórico contractual**:
    * Pulse *Histórico* en cualquier póliza para ver todos sus periodos registrados.
    * Para ver el número de contrato o los datos JSON protegidos de un periodo antiguo, pulse *Ver datos contractuales* e introduzca su contraseña.
 
