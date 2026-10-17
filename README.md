@@ -24,6 +24,7 @@ Cada release incluye:
 
 * `correduria-local_<versión>_arm64.deb` — paquete binario (incluye su *runtime*; no requiere Python ni dependencias del sistema).
 * `manifest-<versión>.json` — manifiesto firmado (Ed25519) con la URL del artefacto, su SHA-256 y su tamaño exacto, para el canal de actualizaciones.
+* `manifest-latest.json` — el mismo manifiesto firmado de **la versión vigente**, bajo un nombre estable: es la URL recomendada para configurar instalaciones (`releases/download/manifest-latest.json`) y no cambia entre versiones. Publicada una nueva versión, se **reemplaza** este asset con el manifiesto nuevo firmado.
 
 ## Instalación (Ubuntu arm64)
 
