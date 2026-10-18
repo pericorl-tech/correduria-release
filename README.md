@@ -11,7 +11,7 @@ Este repositorio contiene paquetes instalables, manuales y los **instaladores gu
 | Carpeta / repo | Contenido | Sistema |
 |---|---|---|
 | (raíz) `correduria-release` | Paquetes `.deb`, manuales, análisis | — |
-| [`installer-linux/`](installer-linux/) | Instalador guiado `install.sh` + plantilla de respuestas | Ubuntu/Debian arm64 |
+| [`installer-linux/`](installer-linux/) | Instalador guiado `install.sh` + plantilla de respuestas | Ubuntu/Debian (arm64 y amd64) |
 | [`installer-windows/`](installer-windows/) | Instalador guiado `Setup-Correduria.ps1` + servicio WinSW + `Update-Correduria.ps1` | Windows 10/11 x64 (piloto) |
 
 Los instaladores viven como **carpetas de este repositorio** (se descargan junto con todo lo demás). Si en el futuro se publicaran como repositorios propios (`correduria-installer-linux` / `correduria-installer-windows`), pueden extraerse con `git subtree split --prefix=installer-linux -b main` sin perder historial. Ambos comparten el mismo **canal de actualizaciones firmado** (manifiesto Ed25519 multi-arquitectura) publicado en los Releases de este repo.
@@ -21,7 +21,7 @@ Los instaladores viven como **carpetas de este repositorio** (se descargan junto
 | Plataforma | Estado |
 |---|---|
 | Ubuntu/Debian arm64 (glibc ≥ 2.41) | **Disponible** (paquete `.deb` + instalador guiado `installer-linux`) |
-| Ubuntu amd64 | Planificado |
+| Ubuntu/Debian amd64 (glibc ≥ 2.43) | **Disponible** desde v0.8.3 (paquete `.deb` + instalador guiado; manifiesto `manifest-latest-amd64.json`) |
 | Windows 10/11 x64 | Piloto — instalador `installer-windows` + análisis en [docs/analisis-instalador-windows.md](docs/analisis-instalador-windows.md) |
 
 Por ahora **solo hay versión para Ubuntu/Debian** (paquete `.deb`). El **nombre del equipo (hostname)** es un elemento a configurar durante la instalación: la plataforma funciona en el equipo que elija la correduría (mini PC, equipo de escritorio o servidor pequeño), sin depender de ningún modelo concreto de hardware.
@@ -32,11 +32,12 @@ Use el último [release](https://github.com/pericorl-tech/correduria-release/rel
 
 Cada release incluye:
 
-* `correduria-local_<versión>_arm64.deb` — paquete binario (incluye su *runtime*; no requiere Python ni dependencias del sistema).
+* `correduria-local_<versión>_arm64.deb` — paquete binario para **arm64** (glibc ≥ 2.41). Incluye su *runtime*; no requiere Python ni dependencias del sistema.
+* `correduria-local_<versión>_amd64.deb` — paquete binario para **amd64/x86_64** (glibc ≥ 2.43), desde v0.8.3.
 * `manifest-<versión>.json` — manifiesto firmado (Ed25519) con la URL del artefacto, su SHA-256 y su tamaño exacto, para el canal de actualizaciones.
 * `manifest-latest.json` — el mismo manifiesto firmado de **la versión vigente**, bajo un nombre estable: es la URL recomendada para configurar instalaciones (`releases/latest/download/manifest-latest.json`) y no cambia entre versiones. Publicada una nueva versión, se **reemplaza** este asset con el manifiesto nuevo firmado.
 
-## Instalación (Ubuntu/Debian arm64)
+## Instalación (Ubuntu/Debian arm64/amd64)
 
 ### Opción recomendada: instalador guiado
 
@@ -48,7 +49,7 @@ sudo bash installer-linux/install.sh
 
 El instalador:
 
-1. Comprueba SO, arquitectura (arm64) y glibc (≥ 2.41).
+1. Comprueba SO, arquitectura (arm64/amd64) y glibc (≥ 2.41 en arm64, ≥ 2.43 en amd64).
 2. Pregunta el **nombre del equipo** (*hostname* donde se instalará: mini PC, escritorio o servidor) y la zona horaria.
 3. Localiza o descarga el paquete `.deb` y verifica su SHA-256 contra el manifiesto.
 4. Pide el **modo de acceso**: solo local, **Tailscale** (red privada con HTTPS automático, recomendado), proxy Caddy con HTTPS interno en la oficina, o LAN directa.
@@ -65,20 +66,20 @@ Opciones: `--help`, `--unattended respuestas.conf` (instalación desatendida; ve
 1. Compruebe la arquitectura del equipo:
 
    ```bash
-   dpkg --print-architecture        # debe decir arm64
-   ldd --version | head -1          # glibc >= 2.41
+   dpkg --print-architecture        # arm64 o amd64
+   ldd --version | head -1          # glibc >= 2.41 (arm64) o >= 2.43 (amd64)
    ```
 
 2. Verifique la integridad del paquete con el SHA-256 publicado en el release:
 
    ```bash
-   sha256sum correduria-local_<versión>_arm64.deb
+   sha256sum correduria-local_<versión>_<arch>.deb
    ```
 
 3. Instale:
 
    ```bash
-   sudo dpkg -i correduria-local_<versión>_arm64.deb
+   sudo dpkg -i correduria-local_<versión>_<arch>.deb
    ```
 
    El postinst crea el usuario `correduria-local`, el directorio de datos `/var/lib/correduria` (permisos `0700`), y habilita el servicio `correduria-local.service`.

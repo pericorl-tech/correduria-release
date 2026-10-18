@@ -271,25 +271,28 @@ comprobaciones_previas() {
     case "$ARCH" in
         arm64|aarch64) ARCH_OK="arm64" ;;
         amd64|x86_64)
-            aviso "Arquitectura amd64: el paquete oficial amd64 está PLANIFICADO y aún no publicado."
-            aviso "Continúe solo si dispone de un paquete .deb amd64 propio (opción --deb)."
+            aviso "Arquitectura amd64: el paquete oficial existe desde v0.8.3 y exige glibc >= 2.43."
+            aviso "Si su equipo tiene glibc más antigua, use el build arm64 o un .deb amd64 propio (--deb)."
             [ "$MODO_NOINTERACTIVO" = "si" ] || [ "$ACEPTAR_TODO" = "si" ] || {
-                confirmar "¿Continuar de todos modos con amd64?" n || fatal "Instalación cancelada."
+                confirmar "¿Continuar la instalación en amd64?" s || fatal "Instalación cancelada."
             } ;;
         *) fatal "Arquitectura no soportada: $ARCH (disponible: arm64)." ;;
     esac
 
-    # glibc
+    # glibc (paquetes oficiales: arm64 desde 2.41; build amd64 de v0.8.3 desde 2.43)
+    MIN_GLIBC="2.41"
+    [ "$ARCH" = "amd64" ] && MIN_GLIBC="2.43"
     GLIBC="$(ldd --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+$' || true)"
     if [ -n "$GLIBC" ]; then
         caso_major="${GLIBC%%.*}"; caso_minor="${GLIBC#*.}"
-        if [ "$caso_major" -gt 2 ] || { [ "$caso_major" -eq 2 ] && [ "$caso_minor" -ge 41 ]; }; then
-            ok "glibc $GLIBC (>= 2.41)"
+        min_mayor="${MIN_GLIBC%%.*}"; min_minor="${MIN_GLIBC#*.}"
+        if [ "$caso_major" -gt "$min_mayor" ] || { [ "$caso_major" -eq "$min_mayor" ] && [ "$caso_minor" -ge "$min_minor" ]; }; then
+            ok "glibc $GLIBC (>= $MIN_GLIBC)"
         else
-            fatal "glibc $GLIBC demasiado antigua: la aplicación requiere glibc >= 2.41 (Ubuntu 24.10+ / Debian trixie+)."
+            fatal "glibc $GLIBC demasiado antigua: la aplicación requiere glibc >= $MIN_GLIBC."
         fi
     else
-        aviso "No se pudo determinar la versión de glibc; la app exige >= 2.41."
+        aviso "No se pudo determinar la versión de glibc; la app exige >= $MIN_GLIBC."
     fi
 
     # Instalación previa
@@ -474,6 +477,11 @@ preguntar_almacenamiento() {
     preguntar BACKUP_DIR "Directorio donde se escribirán los .crbk (zona de preparación; aplique luego la regla 3-2-1):" "$BACKUP_DIR"
 
     info "Paso 5/6 · Canal de actualizaciones firmadas (Ed25519)"
+    # Canal de actualizaciones: el manifiesto es por arquitectura (el público
+    # estable para arm64 es manifest-latest.json; para amd64 manifest-latest-amd64.json)
+    if [ "${ARCH:-arm64}" = "amd64" ] && [ "$MANIFEST_URL" = "https://github.com/pericorl-tech/correduria-release/releases/latest/download/manifest-latest.json" ]; then
+        MANIFEST_URL="https://github.com/pericorl-tech/correduria-release/releases/latest/download/manifest-latest-amd64.json"
+    fi
     preguntar MANIFEST_URL "URL del manifiesto de actualizaciones (vacío = no configurar):" "$MANIFEST_URL"
     preguntar PUBLIC_KEY_FILE "Fichero de clave pública Ed25519 del distribuidor (vacío = clave embebida en el paquete):" "$PUBLIC_KEY_FILE"
     preguntar ENTITLEMENT_FILE "Fichero de derecho de actualización entitlement.json (vacío = sin entitlement):" "$ENTITLEMENT_FILE"

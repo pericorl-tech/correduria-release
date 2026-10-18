@@ -48,11 +48,12 @@ Documentación relacionada:
 | Sistema | Requisitos |
 |---|---|
 | **Ubuntu/Debian arm64** | Ubuntu 24.10+ / Debian 13 (glibc ≥ 2.41), arquitectura arm64, `sudo` disponible. |
+| **Ubuntu/Debian amd64** | Ubuntu/Debian amd64 con **glibc ≥ 2.43** (build oficial desde v0.8.3), `sudo` disponible. |
 | **Windows 10/11 x64 (piloto)** | Windows 10 1809+ o Windows 11, cuenta de Administrador, y el artefacto `correduria-local_<versión>_win32-x64.zip` (se genera con el workflow `installer-windows/ci/build-windows.yml` en un runner Windows; véase sección 6). |
 
 ### Materiales de la aplicación
 
-1. El paquete del último *release* (`correduria-local_<versión>_arm64.deb` y su `manifest-<versión>.json`) desde los Releases del proyecto.
+1. El paquete del último *release* para su arquitectura (`correduria-local_<versión>_arm64.deb` o `correduria-local_<versión>_amd64.deb`) y su manifiesto (`manifest-latest.json` para arm64; `manifest-latest-amd64.json` para amd64), desde los Releases del proyecto.
 2. Los instaladores: carpeta `installer-linux/` o `installer-windows/` (clonando los repositorios `correduria-installer-linux` / `correduria-installer-windows`, o copiando las carpetas del proyecto).
 
 ---
@@ -66,7 +67,8 @@ Documentación relacionada:
 git clone https://github.com/pericorl-tech/correduria-release.git
 cd correduria-release/installer-linux
 # Descargue además del release más reciente (releases/latest) el paquete
-#   correduria-local_<versión>_arm64.deb  (+ manifest-latest.json si lo hay)
+#   correduria-local_<versión>_<arch>.deb   (arch = arm64 o amd64)
+#   (+ su manifiesto: manifest-latest.json en arm64 / manifest-latest-amd64.json en amd64)
 #   y colóquelos en esta misma carpeta (o en su carpeta padre).
 
 # Opción B: copie manualmente la carpeta installer-linux y el .deb por USB/SCP.
