@@ -1,6 +1,6 @@
 # Manual de Usuario · Plataforma Correduría
 
-Este manual describe el funcionamiento, la navegación y el uso diario de la plataforma web local de gestión de correduría (versión 0.8.2).
+Este manual describe el funcionamiento, la navegación y el uso diario de la plataforma web local de gestión de correduría (versión 0.8.3).
 
 La aplicación está diseñada para operar de forma local y monousuario, protegiendo los datos confidenciales de los asegurados mediante accesos temporales reforzados y garantizando la trazabilidad documental del negocio.
 

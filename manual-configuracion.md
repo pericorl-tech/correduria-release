@@ -1,6 +1,6 @@
 # Manual de Configuración para el Usuario · Plataforma Correduría
 
-Este documento detalla todas las opciones de configuración disponibles en la plataforma de correduría (versión 0.8.2), su propósito, el procedimiento para incorporar credenciales y suscripciones de terceros (suscripción automática de ChatGPT Plus/Pro, APIs de IA, servidores de correo SMTP) y las directrices de buenas prácticas operativas, especialmente en lo relativo a copias de seguridad y su custodia externa.
+Este documento detalla todas las opciones de configuración disponibles en la plataforma de correduría (versión 0.8.3), su propósito, el procedimiento para incorporar credenciales y suscripciones de terceros (suscripción automática de ChatGPT Plus/Pro, APIs de IA, servidores de correo SMTP) y las directrices de buenas prácticas operativas, especialmente en lo relativo a copias de seguridad y su custodia externa.
 
 Para la operativa diaria de cada sección de la interfaz, consulte el [Manual de Usuario](manual-usuario.md).
 
