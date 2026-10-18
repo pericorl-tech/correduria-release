@@ -48,7 +48,7 @@ Documentación relacionada:
 | Sistema | Requisitos |
 |---|---|
 | **Ubuntu/Debian arm64** | Ubuntu 24.10+ / Debian 13 (glibc ≥ 2.41), arquitectura arm64, `sudo` disponible. |
-| **Windows 10/11 x64 (piloto)** | Windows 10 1809+ o Windows 11, cuenta de Administrador, y el artefacto `correduria-local_<versión>_win32-x64.zip` (**aún no publicado**: la versión Windows está en fase piloto — véase sección 6). |
+| **Windows 10/11 x64 (piloto)** | Windows 10 1809+ o Windows 11, cuenta de Administrador, y el artefacto `correduria-local_<versión>_win32-x64.zip` (se genera con el workflow `installer-windows/ci/build-windows.yml` en un runner Windows; véase sección 6). |
 
 ### Materiales de la aplicación
 
@@ -151,7 +151,7 @@ Sirve para cambiar hostname del equipo, modo de acceso (p. ej. pasar de local a 
 ## 6. Instalación en Windows (fase piloto)
 
 > [!IMPORTANT]
-> El instalador PowerShell **ya está disponible** en `installer-windows/Setup-Correduria.ps1` y funciona de principio a fin **si dispone del artefacto binario** `correduria-local_<versión>_win32-x64.zip`. Ese artefacto se genera en el repositorio privado y **aún no se publica**: hasta que exista, la instalación en Windows no puede completarse (el instalador lo indica claramente al no encontrar el paquete). Análisis completo: [docs/analisis-instalador-windows.md](docs/analisis-instalador-windows.md).
+> El instalador PowerShell **ya está disponible** en `installer-windows/Setup-Correduria.ps1` y funciona de principio a fin **si dispone del artefacto binario** `correduria-local_<versión>_win32-x64.zip`. Ese artefacto se compila en un runner Windows de GitHub Actions (PyInstaller no compila desde Linux): copie `installer-windows/ci/build-windows.yml` al repositorio privado `correduria` como `.github/workflows/build-windows.yml`, ejecute *Run workflow* sobre la rama `feature/win64-build` y descargue el artefacto. Mientras no exista el zip, la instalación en Windows no puede completarse (el instalador lo indica claramente al no encontrar el paquete). Análisis completo: [docs/analisis-instalador-windows.md](docs/analisis-instalador-windows.md).
 
 Cuando el artefacto exista:
 

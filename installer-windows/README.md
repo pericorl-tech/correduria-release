@@ -53,6 +53,20 @@ El asistente pregunta (iguales conceptos que en Linux):
 | **Caddy** (opcional) | Proxy HTTPS interno en la oficina | `winget install` o zip oficial |
 | ACLs NTFS | Equivalente a los permisos `0700/0600` POSIX | `icacls` sobre `%ProgramData%\Correduria` |
 
+## Cómo generar el artefacto win64 (requisito previo)
+
+El binario `correduria-local_<versión>_win32-x64.zip` **no puede compilarse desde Linux** (PyInstaller no hace compilación cruzada): se genera en un runner Windows mediante GitHub Actions.
+
+1. El workflow está en [`ci/build-windows.yml`](ci/build-windows.yml) (copia de referencia). Colóquelo en el repo privado `correduria` como `.github/workflows/build-windows.yml` (interfaz web de GitHub → Actions → *New workflow* → pegar y confirmar; el token almacenado en puestos sin scope `workflow` no puede subirlo por git).
+2. En el repo privado, ejecute **Actions → Build Windows x64 (win64) → Run workflow** sobre la rama `feature/win64-build` (contiene `build_binary.py` ya adaptado a Windows).
+3. Descargue el artefacto `correduria-local_<versión>_win32-x64` de la ejecución y úselo con este instalador:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Setup-Correduria.ps1 -Package C:\descargas\correduria-local_0.8.3_win32-x64.zip
+```
+
+> La rama `feature/win64-build` del repo privado solo cambia `scripts/build_binary.py` (separador `--add-data` por plataforma y eliminación del bloqueo a Linux); el resto de la aplicación **ya era compatible con Windows** (el límite `resource` del lector PDF y `geteuid` están protegidos con guards; los `chmod` no rompen nada en NTFS).
+
 ## Fases de este repositorio
 
 1. **Fase 1 (piloto)** ✅ inicial: `Setup-Correduria.ps1` + WinSW + Tailscale; actualizaciones con `tools/Update-Correduria.ps1` (hash + swap manual).
@@ -66,4 +80,5 @@ El asistente pregunta (iguales conceptos que en Linux):
 | `Setup-Correduria.ps1` | Instalador guiado (interactive/desatendido) |
 | `service/correduria-service.xml` | Plantilla de servicio WinSW |
 | `tools/Update-Correduria.ps1` | Aplicador de actualizaciones (fase piloto) |
+| `ci/build-windows.yml` | Workflow que genera el artefacto win64 (copiar al repo privado `correduria` → `.github/workflows/`) |
 | `answers.example.conf` | Plantilla de respuestas para modo desatendido |

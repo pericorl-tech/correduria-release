@@ -32,7 +32,8 @@ Los instaladores se distribuyen en dos repositorios hermanos: `correduria-instal
 ## 2. Qué sería necesario construir para Windows
 
 ### 2.1 Compilación (build)
-1. **Rebuild del binario en Windows x64**: PyInstaller `--onedir` sobre Python 3.13 en Windows. Verificar en CI que `argon2_cffi_bindings`, `cryptography` (Rust) y `sqlite3` empaquetan correctamente sus `.pyd`.
+1. **Rebuild del binario en Windows x64**: PyInstaller `--onedir` sobre Python 3.13 en Windows. Verificar en CI que `cryptography` (Rust), `pydantic_core`, `cffi` y `sqlite3` empaquetan correctamente sus `.pyd`.
+   > **Estado: automatizado.** `scripts/build_binary.py` del repo privado ya acepta Windows, y el workflow `installer-windows/ci/build-windows.yml` (copiable a `.github/workflows/`) produce el `correduria-local_<versión>_win32-x64.zip` en un runner `windows-latest` con verificación de «sin fuentes .py» y subida como artefacto. La verificación previa de compatibilidad fue favorable: `resource` (límites del worker PDF) y `os.geteuid` ya están protegidos con *guards*, y `os.chmod`/`umask` no fallan en Windows.
 2. **Rutas internas**: revisar el código (repo privado) por usos de rutas POSIX duras (`/var/lib/correduria`, `/etc/correduria`, `/usr/bin`). El diseño ya lee `CORREDURIA_DATA_DIR` y `CORREDURIA_PUBLIC_URL` desde entorno — esto **facilita mucho** el puerto: en Windows se alimentarían desde el gestor de servicio.
 3. **Firmado Authenticode**: certificado OV/EV de firma de código. Sin firmar, SmartScreen y los antivirus de las oficinas bloquearán o alarmarán sobre el ejecutable (los binarios PyInstaller son un falso positivo clásico).
 

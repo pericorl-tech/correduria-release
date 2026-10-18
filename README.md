@@ -131,7 +131,7 @@ Existe un instalador guiado en PowerShell en el repositorio anidado [`installer-
 powershell -ExecutionPolicy Bypass -File .\installer-windows\Setup-Correduria.ps1
 ```
 
-Requiere el artefacto `correduria-local_<versión>_win32-x64.zip` (se publica en fase 2). Usa **WinSW** como servicio de Windows y **Tailscale** para la red privada + HTTPS, igual que en Linux. Estado y limitaciones: [docs/analisis-instalador-windows.md](docs/analisis-instalador-windows.md).
+Requiere el artefacto `correduria-local_<versión>_win32-x64.zip`. **Su generación ya está automatizada**: un workflow de GitHub Actions (`windows-latest`) lo produce en el repositorio privado. Copie [`installer-windows/ci/build-windows.yml`](installer-windows/ci/build-windows.yml) al repo `correduria` como `.github/workflows/build-windows.yml`, ejecute *Run workflow* y descargue el artefacto. Instrucciones completas en [`installer-windows/README.md`](installer-windows/README.md). Estado y limitaciones: [docs/analisis-instalador-windows.md](docs/analisis-instalador-windows.md).
 
 ## Manuales y documentación
 
