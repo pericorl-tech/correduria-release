@@ -1,0 +1,8 @@
+# Paquetes y artefactos descargados localmente (no versionar)
+*.deb
+*.log
+*.bak-*
+
+# Residuos locales
+*.tmp
+.DS_Store

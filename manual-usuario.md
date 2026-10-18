@@ -389,7 +389,7 @@ Disponible de inmediato.
   * Introduzca su contraseña actual.
   * Se descargará el archivo `correduria-backup-recovery.key`.
   > [!CAUTION]
-  > Este archivo es indispensable para descifrar las copias de seguridad en caso de desastre. Debe custodiarlo fuera del servidor o Raspberry Pi (p. ej., en un gestor de contraseñas o unidad externa cifrada). Si pierde este archivo y el equipo original se avería, las copias de seguridad no podrán recuperarse.
+  > Este archivo es indispensable para descifrar las copias de seguridad en caso de desastre. Debe custodiarlo fuera del equipo de instalación (el servidor donde corre la aplicación, identificado por el *hostname* que se definió al instalar; p. ej., en un gestor de contraseñas o unidad externa cifrada). Si pierde este archivo y el equipo original se avería, las copias de seguridad no podrán recuperarse.
 * **Descargar copia**:
   * En la lista de archivos de copia, pulse *Descargar* e introduzca su contraseña para guardar el fichero `.crbk` en su ordenador local.
 

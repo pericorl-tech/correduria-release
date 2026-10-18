@@ -1,0 +1,8 @@
+# Artefactos y binarios descargados (no versionar)
+*.zip
+*.exe
+*.msi
+*.log
+# Material sensible
+*.key
+entitlement*.json

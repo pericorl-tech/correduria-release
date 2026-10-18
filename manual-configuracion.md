@@ -23,7 +23,7 @@ Para la operativa diaria de cada sección de la interfaz, consulte el [Manual de
     - [11.2 API Keys de Proveedores de IA (OpenAI y compatibles)](#112-api-keys-de-proveedores-de-ia-openai-y-compatibles)
     - [11.3 Suscripción de ChatGPT (Plus / Pro mediante Sign in with ChatGPT)](#113-suscripción-de-chatgpt-plus--pro-mediante-sign-in-with-chatgpt)
 12. [Buenas Prácticas de Seguridad y Almacenamiento de Backups](#12-buenas-prácticas-de-seguridad-y-almacenamiento-de-backups)
-    - [12.1 El riesgo del almacenamiento único en el miniPC / Raspberry Pi](#121-el-riesgo-del-almacenamiento-único-en-el-minipc--raspberry-pi)
+    - [12.1 El riesgo del almacenamiento único en el equipo de instalación](#121-el-riesgo-del-almacenamiento-único-en-el-equipo-de-instalación)
     - [12.2 Dónde almacenar las copias de seguridad (Regla 3-2-1)](#122-dónde-almacenar-las-copias-de-seguridad-regla-3-2-1)
     - [12.3 Custodia de la Clave de Recuperación criptográfica](#123-custodia-de-la-clave-de-recuperación-criptográfica)
     - [12.4 Ensayos periódicos de restauración offline](#124-ensayos-periódicos-de-restauración-offline)
@@ -373,7 +373,10 @@ Si en un entorno sin acceso directo desde la interfaz web un administrador de si
 
 La información gestionada por una correduría de seguros incluye datos de alta confidencialidad (documentos identificativos, autorizaciones de corretaje, contratos de seguro y datos de contacto). La custodia de esta información requiere medidas técnicas y organizativas rigurosas.
 
-### 12.1 El riesgo del almacenamiento único en el miniPC / Raspberry Pi
+### 12.1 El riesgo del almacenamiento único en el equipo de instalación
+
+> [!NOTE]
+> A lo largo de este manual, **el equipo de instalación** es el ordenador físico donde corre la plataforma (un mini PC, un equipo de escritorio o un pequeño servidor). Su nombre es el ***hostname*** del sistema, un elemento **definido por usted durante la instalación** (en el instalador guiado: pregunta *Nombre del equipo*, variable `EQUIPO_NOMBRE`; p. ej. `correduria-oficina`): ese nombre identifica al servidor en la red privada Tailscale, en los certificados TLS y en los resúmenes de avisos.
 
 > [!CAUTION]
 > El directorio de backup configurado por defecto (`/var/lib/correduria/backups`) es una **zona de preparación técnica (staging)** dentro del propio servidor.
@@ -381,7 +384,7 @@ La información gestionada por una correduría de seguros incluye datos de alta 
 > **Una copia de seguridad ubicada en el mismo disco o tarjeta de memoria que la base de datos viva no protege ante:**
 > * Avería de hardware o corrupción de la tarjeta MicroSD / disco SSD.
 > * Sobretensión eléctrica o fallo de la fuente de alimentación.
-> * Robo físico o extravío del miniPC.
+> * Robo físico o extravío del equipo de instalación.
 > * Daños por siniestros (incendio, inundación en la oficina).
 >
 > Si el dispositivo físico se daña, **se perderán simultáneamente tanto los datos de producción como todas las copias de seguridad**.
@@ -393,8 +396,8 @@ La información gestionada por una correduría de seguros incluye datos de alta 
 Se recomienda encarecidamente implementar el principio **3-2-1** adaptado al entorno de la correduría:
 
 ```
-[ Datos Vivos en la Raspberry Pi ]
-                │
+[ Datos Vivos en el Equipo de Instalación ]
+                │  (hostname p. ej. correduria-oficina)
                 ▼ (Backup diario cifrado CRBK1)
        [ Staging Local ] (/var/lib/correduria/backups)
                 │
@@ -418,7 +421,7 @@ compartida de la oficina        Almacenamiento Cloud cifrado
   * Acceda semanalmente a la pestaña **Backups** y pulse **Descargar** sobre la copia más reciente.
   * Mueva el archivo `.crbk` a una unidad USB cifrada (p. ej., mediante BitLocker o LUKS).
 * **Opción C: Script automatizado de réplica externa (*Pull-backup*)**:
-  * Un equipo secundario o NAS inicia sesión por SSH con permisos restringidos en la Raspberry Pi y extrae los archivos `.crbk` mediante `rsync` hacia su propio almacenamiento seguro.
+  * Un equipo secundario o NAS inicia sesión por SSH con permisos restringidos en el equipo de instalación (el *hostname* que se definió al instalar) y extrae los archivos `.crbk` mediante `rsync` hacia su propio almacenamiento seguro.
 
 ---
 

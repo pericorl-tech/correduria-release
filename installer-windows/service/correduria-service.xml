@@ -1,0 +1,39 @@
+<!--
+  Plantilla WinSW · Servicio Correduria Local (Windows)
+
+  Setup-Correduria.ps1 sustituye:
+    {{INSTALL_DIR}}   carpeta de instalacion (p. ej. C:\Program Files\Correduria)
+    {{PORT}}            puerto local de escucha (por defecto 8080)
+    {{ENV_ENTRIES}}     lineas <env .../> con CORREDURIA_DATA_DIR, CORREDURIA_PUBLIC_URL
+                        y el canal de actualizaciones
+
+  Notas:
+    - El servicio corre como LocalService (fase piloto). La cuenta necesita ACLs
+      Modify sobre el directorio de datos; el instalador las aplica con icacls/Get-Acl.
+    - El hardening de systemd (ProtectSystem, PrivateTmp) no existe en Windows:
+      se compensa con ACLs NTFS restrictivas y escucha exclusiva en 127.0.0.1.
+    - Cuando correduria-server.exe incorpore 'update-install' (fase 2), el
+      aplicador de actualizaciones parara/arrancara este servicio.
+-->
+<service>
+  <id>CorreduriaLocal</id>
+  <name>Correduria - plataforma web local</name>
+  <description>Plataforma web local monousuario para correduria de seguros (binario oficial).</description>
+
+  <executable>{{INSTALL_DIR}}\correduria-server.exe</executable>
+  <arguments>serve --host 127.0.0.1 --port {{PORT}}</arguments>
+
+  <!-- Entorno de la aplicacion (equivalente a EnvironmentFile=/etc/correduria/application.env) -->
+{{ENV_ENTRIES}}
+
+  <workingdirectory>{{INSTALL_DIR}}</workingdirectory>
+
+  <onfailure action="restart" delay="5 sec"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <startmode>Automatic</startmode>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>
