@@ -569,11 +569,13 @@ aplicar_configuracion() {
 
     # 7.3 application.env (copia de seguridad previa + escritura atómica)
     local env_dir="/etc/correduria" env_file="/etc/correduria/application.env"
-    install -d -m 0700 "$env_dir"
+    install -d -m 0755 "$env_dir"
+    chmod 0755 "$env_dir" || true
     if [ -f "$env_file" ]; then
         cp -a "$env_file" "${env_file}.bak-$(date +%Y%m%d%H%M%S)"
         info "Configuración anterior respaldada en ${env_file}.bak-*"
     fi
+    local pub_key_effective="${PUBLIC_KEY_FILE:-/etc/correduria/release-public.key}"
     cat >"${env_file}.tmp" <<ENV
 # Configuración generada por install.sh el $(date '+%F %T')
 # Equipo: $EQUIPO_NOMBRE · Instalador v$VERSION_INSTALADOR
@@ -581,8 +583,9 @@ CORREDURIA_DATA_DIR=$DATA_DIR
 CORREDURIA_PUBLIC_URL=$URL_PUBLICA
 # Canal de actualizaciones (manifiesto firmado Ed25519):
 CORREDURIA_UPDATE_MANIFEST_URL=$MANIFEST_URL
-CORREDURIA_UPDATE_PUBLIC_KEY_FILE=$PUBLIC_KEY_FILE
+CORREDURIA_UPDATE_PUBLIC_KEY_FILE=$pub_key_effective
 CORREDURIA_UPDATE_ENTITLEMENT_FILE=$ENTITLEMENT_FILE
+CORREDURIA_LOCAL_CA_CERT_FILE=/etc/correduria/local-ca-root.crt
 ENV
     install -m 0600 "${env_file}.tmp" "$env_file" && rm -f "${env_file}.tmp"
     ok "Escrito $env_file (0600)"
@@ -664,6 +667,14 @@ $DOMINIO_LAN {
 CADDY
         systemctl enable --now caddy >/dev/null 2>&1 || true
         systemctl restart caddy >/dev/null 2>&1 || aviso "Reinicie caddy manualmente si falla"
+        local caddy_ca="/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt"
+        for _ in 1 2 3 4 5; do
+            [ -f "$caddy_ca" ] && break
+            sleep 1
+        done
+        if [ -f "$caddy_ca" ] && [ -x /opt/correduria/bin/correduria-server ]; then
+            /opt/correduria/bin/correduria-server export-ca --source "$caddy_ca" --output /etc/correduria/local-ca-root.crt >/dev/null 2>&1 || true
+        fi
         ok "Caddy proxy HTTPS interno configurado: https://$DOMINIO_LAN"
         aviso "Abra el puerto 443 en el firewall de la oficina si el DNS interno no resuelve $DOMINIO_LAN"
     fi
