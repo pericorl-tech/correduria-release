@@ -1,11 +1,11 @@
 # Análisis técnico · Instalador para Windows · Plataforma Correduría Local
 
-**Fecha:** octubre 2026 · **Basado en:** paquete `correduria-local_0.8.3_arm64.deb` (build PyInstaller onedir, aarch64/glibc 2.41).
+**Fecha:** noviembre 2026 · **Basado en:** arquitectura `correduria-local` v1.0.0 (builds PyInstaller onedir Linux `amd64`/glibc 2.43 y `arm64`/glibc 2.41).
 
 Objetivo: determinar **qué sería necesario** para publicar una versión Windows y **qué rompería** del funcionamiento actual del programa.
 
 > [!IMPORTANT]
-> **Sobre `update-install`: es una función interna de la aplicación, no de Windows.** El mecanismo de actualizaciones firmadas (manifiesto Ed25519 + verificación + subcomando `update-install`) lo implementa el propio `correduria-server`; Windows no ofrece ningún equivalente para apps de terceros. Para la versión Windows el canal firmado se reutiliza igual, pero el **aplicador** (`update-install`) debe implementarse dentro de `correduria-server.exe` en el repositorio privado (fase 2). En fase piloto se usa un aplicador externo PowerShell incluido en el repo `correduria-installer-windows`.
+> **Sobre `update-install` / `apply-staged-update`: es una función interna de la aplicación, no de Windows.** El mecanismo de actualizaciones firmadas (manifiesto Ed25519 + verificación + subcomandos `update-install` y `apply-staged-update` en 1 clic vía `correduria-updater.path`) lo implementa el propio `correduria-server`; Windows no ofrece ningún equivalente para apps de terceros. Para la versión Windows el canal firmado se reutiliza igual, pero el **aplicador** debe implementarse dentro de `correduria-server.exe` en el repositorio privado (fase 2). En fase piloto se usa un aplicador externo PowerShell incluido en el repo `correduria-installer-windows`.
 
 Los instaladores se distribuyen en dos repositorios hermanos: `correduria-installer-linux` (este proyecto, ya operativo) y `correduria-installer-windows` (piloto, PowerShell + WinSW).
 
@@ -15,14 +15,14 @@ Los instaladores se distribuyen en dos repositorios hermanos: `correduria-instal
 
 | Componente | Implementación actual (Linux) |
 |---|---|
-| Binario | `correduria-server` — binario PyInstaller *onedir* para **Linux arm64** (glibc ≥ 2.41). Sin dependencias de Python del sistema. |
-| Servicio | `systemd` (`correduria-local.service`) con *hardening* (`ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`, `NoNewPrivileges`, `UMask=0077`). |
+| Binario | `correduria-server` — binario PyInstaller *onedir* para **Linux arm64** (glibc ≥ 2.41) y **Linux amd64** (glibc ≥ 2.43). Sin dependencias de Python del sistema. |
+| Servicio | `systemd` (`correduria-local.service`, más `correduria-updater.path` / `correduria-updater.service` para actualizaciones en 1 clic) con *hardening* (`ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`, `NoNewPrivileges`, `UMask=0077`). |
 | Usuario de servicio | Usuario de sistema POSIX `correduria-local`, datos en `/var/lib/correduria` (`0700`), secretos `0600`. |
-| Configuración del sistema | `/etc/correduria/application.env` (conffile del `.deb`). |
+| Configuración del sistema | `/etc/correduria/application.env` (conffile del `.deb`, incluye `CORREDURIA_ADDITIONAL_PUBLIC_URLS` y `CORREDURIA_LOCAL_CA_CERT_FILE`). |
 | Paquetización | `.deb` con `postinst`/`prerm`/`postrm` (dpkg). |
-| Actualizaciones | Canal firmado **Ed25519**: manifiesto JSON firmado + artefacto `.deb` + `correduria-server update-install` (aplica vía dpkg como root). |
-| Acceso | Escucha `127.0.0.1:8080`; HTTPS recomendado vía Tailscale Serve o Caddy. |
-| Utilidades CLI | `correduria-setup-link` (script `/bin/sh`), `correduria-server restore/restore/restore`, `chatgpt-login/import`. |
+| Actualizaciones | Canal firmado **Ed25519**: manifiesto JSON firmado + artefacto `.deb` + actualización en 1 clic (`correduria-updater.path` → `/usr/sbin/correduria-apply-update` → `apply-staged-update`) o `correduria-server update-install` manual como root. |
+| Acceso | Escucha `127.0.0.1:8080`; HTTPS recomendado vía Tailscale Serve o Caddy; soporte multi-origen (`CORREDURIA_ADDITIONAL_PUBLIC_URLS`), perfil `correduria-configure-access` y exportación de CA local (`export-ca`). |
+| Utilidades CLI | `correduria-setup-link`, `correduria-configure-access`, `correduria-apply-update` (scripts `/bin/sh`), `correduria-server restore`, `apply-staged-update`, `export-ca`, `chatgpt-login/import`. |
 | Diagnóstico | Verifica permisos POSIX `0600/0700` de `secret.key`, `application.db` y el directorio de datos. |
 
 **Buenas noticias estructurales:** la lógica de negocio es Python puro empaquetado, con librerías que tienen ruedas/precompilados para Windows (cryptography/Fernet, argon2-cffi, SQLite estándar, pycryptodome/`_rust` con *wheels* Windows). El protocolo HTTP en loopback, el cifrado AES-256-GCM de backups (`.crbk`), Ed25519 y el flujo OAuth de ChatGPT **son portables y no dependen de Linux**. Tailscale y Caddy tienen cliente/servidor nativos para Windows.
@@ -69,11 +69,12 @@ Los instaladores se distribuyen en dos repositorios hermanos: `correduria-instal
 | Elemento | ¿Se rompe? | Detalle y mitigación |
 |---|---|---|
 | Servicio systemd + hardening (`ProtectSystem`, `PrivateTmp`, `ProtectHome`) | **Sí** | No hay equivalente 1:1 en Windows. Se mitiga con cuenta de servicio dedicada + ACLs NTFS + firewall, pero el *sandbox* de systemd es más estricto. **Es la pérdida de seguridad más relevante.** |
-| Actualizaciones firmadas vía `.deb`/dpkg (`update-install`) | **Sí** | El canal manifiesto+Ed25519 sobrevive, pero el aplicador es Linux-específico. Requiere nuevo aplicador Windows en el repo privado. Hasta tenerlo, las actualizaciones Windows serían manuales (descarga + reinstalador). |
+| Actualizaciones firmadas vía `.deb`/dpkg (`update-install`, `correduria-updater.path`, `correduria-apply-update`) | **Sí** | El canal manifiesto+Ed25519 sobrevive, pero el aplicador y `systemd.path` son Linux-específicos. Requiere nuevo aplicador Windows en el repo privado. Hasta tenerlo, las actualizaciones Windows usan `tools/Update-Correduria.ps1` o reinstalador manual. |
 | Usuario `correduria-local` y permisos `0600/0700` | **Sí (parcial)** | NTFS no tiene chmod; la **sonda de Mantenimiento** que comprueba `0600/0700` fallaría o sería engañosa. Adaptar la sonda a verificar ACLs (`Get-Acl`). |
-| Scripts `correduria-setup-link`, `sudo -u correduria-local ... restore`, `postrm/prerm` | **Sí** | Son scripts POSIX. Reescribirlos como `.exe`/PowerShell. La sintaxis documentada de `restore` (`--backup --key --destination`) se mantiene como interfaz; cambia el envoltorio. |
-| Rutas `/var/lib/correduria`, `/etc/correduria` | **Sí** | Pasan a `%ProgramData%\Correduria` y `%ProgramFiles%\Correduria`. La app ya está preparada (`CORREDURIA_DATA_DIR`), pero **toda la documentación y procedimientos de recuperación** (manual de configuración §12.4) deben duplicarse para Windows. |
+| Scripts `correduria-setup-link`, `correduria-configure-access`, `correduria-apply-update`, `sudo -u correduria-local ... restore`, `postrm/prerm` | **Sí** | Son scripts POSIX. Reescribirlos como `.exe`/PowerShell. La sintaxis documentada de `restore` (`--backup --key --destination`) se mantiene como interfaz; cambia el envoltorio. |
+| Rutas `/var/lib/correduria`, `/etc/correduria` | **Sí** | Pasan a `%ProgramData%\Correduria` y `%ProgramFiles%\Correduria`. La app ya está preparada (`CORREDURIA_DATA_DIR`, `CORREDURIA_LOCAL_CA_CERT_FILE`), pero **toda la documentación y procedimientos de recuperación** (manual de configuración §12.4) deben duplicarse para Windows. |
 | Actualizador de paquetes (`dpkg -i`, `apt`) y el instalador Tailscale `install.sh` | **Sí** | En Windows: MSI de Tailscale e instalador propio; el instalador PowerShell sustituye a `install.sh`. |
+| Exportación de certificado CA (`export-ca`) e instaladores cliente (`.mobileconfig`, `.cmd`, etc.) | **No** | Lógica Python multiplataforma (`cryptography`/X.509); en Windows solo cambia la ruta de origen si se usa Caddy local. |
 | Cifrado (Fernet/AES-GCM, argon2id, SQLite) | **No** | Librerías multiplataforma con *wheels* Windows; el formato `.crbk` es independiente del SO → **un backup hecho en Linux podrá restaurarse en Windows y viceversa** (salvaguarda del 3-2-1 intacta). |
 | Modelo monousuario, UI, OAuth ChatGPT, SMTP, avisos | **No** | Lógica de aplicación pura; no depende del SO. |
 | Escucha `127.0.0.1` y restricción HTTP-solo-loopback | **No** | Idéntico en Windows. |

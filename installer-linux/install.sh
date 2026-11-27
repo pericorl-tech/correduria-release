@@ -26,7 +26,7 @@
 # =============================================================================
 set -euo pipefail
 
-VERSION_INSTALADOR="1.0.0"
+VERSION_INSTALADOR="1.0.1"
 LOG_DIR="/var/log/correduria-instalador"
 LOG_FILE=""
 CONF_ESCRITA=""
@@ -36,7 +36,7 @@ EQUIPO_NOMBRE=""            # hostname del equipo donde se instala
 CAMBIAR_HOSTNAME="no"       # sí/no: aplicar EQUIPO_NOMBRE con hostnamectl
 ZONA_HORARIA="Europe/Madrid"
 DEB_FILE=""                           # ruta o URL del paquete .deb (vacío = detectar)
-MODO_ACCESO="tailscale"       # local | tailscale | caddy | lan
+MODO_ACCESO="tailscale"       # local | tailscale | caddy | proxy
 PUERTO="8080"
 URL_PUBLICA=""              # vacío = derivada del modo elegido
 DATA_DIR="/var/lib/correduria"
@@ -88,7 +88,7 @@ Opciones:
 Flujo interactivo (lo que se pregunta):
   1. Nombre del equipo (hostname) y zona horaria.
   2. Paquete a instalar (detectado, ruta local o descarga del release).
-  3. Modo de acceso: solo local, Tailscale (recomendado), Caddy LAN o LAN directa.
+  3. Modo de acceso: solo local, Tailscale (recomendado), Caddy LAN o Proxy HTTPS propio.
   4. Puerto de escucha, directorio de datos y directorio de backups.
   5. Canal de actualizaciones (manifiesto firmado, clave pública, entitlement).
   6. Resumen final con el enlace de primera puesta en marcha.
@@ -276,7 +276,7 @@ comprobaciones_previas() {
             [ "$MODO_NOINTERACTIVO" = "si" ] || [ "$ACEPTAR_TODO" = "si" ] || {
                 confirmar "¿Continuar la instalación en amd64?" s || fatal "Instalación cancelada."
             } ;;
-        *) fatal "Arquitectura no soportada: $ARCH (disponible: arm64)." ;;
+        *) fatal "Arquitectura no soportada: $ARCH (disponible: arm64, amd64)." ;;
     esac
 
     # glibc (paquetes oficiales: arm64 desde 2.41; build amd64 de v0.8.3 desde 2.43)
@@ -384,19 +384,32 @@ localizar_paquete() {
 }
 
 verificar_sha256() {
-    # Si en el mismo directorio hay manifest-<version>.json o el release publica
-    # manifest-latest.json, se comprueba el SHA-256 cuando está disponible.
-    local pkg="$1" ver sha esperado
-    ver="$(basename "$pkg" | sed -E 's/correduria-local_(.+)_.*\.deb/\1/')"
-    local manifest="$(dirname "$pkg")/manifest-${ver}.json"
-    if [ -f "$manifest" ] && command -v sha256sum >/dev/null; then
+    # Busca junto al paquete el manifiesto que corresponda al nombre exacto del .deb
+    # (manifest-<ver>-<arch>.json, manifest-<ver>.json, manifest-latest-<arch>.json o manifest-latest.json).
+    local pkg="$1" base dir ver pkg_arch candidato manifest sha esperado
+    base="$(basename "$pkg")"
+    dir="$(dirname "$pkg")"
+    ver="$(printf '%s' "$base" | sed -E 's/^correduria-local_(.+)_(amd64|arm64)\.deb$/\1/')"
+    pkg_arch="$(printf '%s' "$base" | sed -nE 's/^correduria-local_.+_(amd64|arm64)\.deb$/\1/p')"
+    manifest=""
+    for candidato in \
+        "${dir}/manifest-${ver}-${pkg_arch}.json" \
+        "${dir}/manifest-${ver}.json" \
+        "${dir}/manifest-latest-${pkg_arch}.json" \
+        "${dir}/manifest-latest.json"; do
+        if [ -f "$candidato" ] && grep -q "\"${base}\"" "$candidato"; then
+            manifest="$candidato"
+            break
+        fi
+    done
+    if [ -n "$manifest" ] && command -v sha256sum >/dev/null; then
         esperado="$(grep -oE '"sha256"[^,]*' "$manifest" | head -1 | grep -oE '[0-9a-f]{64}' || true)"
         if [ -n "$esperado" ]; then
             sha="$(sha256sum "$pkg" | awk '{print $1}')"
             if [ "$sha" = "$esperado" ]; then
-                ok "SHA-256 verificado contra manifest-${ver}.json"
+                ok "SHA-256 verificado contra $(basename "$manifest")"
             else
-                fatal "SHA-256 NO coincide con el manifiesto (${ver}). No continúe: el paquete puede estar corrupto o manipulado."
+                fatal "SHA-256 NO coincide con $(basename "$manifest") (${ver}). No continúe: el paquete puede estar corrupto o manipulado."
             fi
         fi
     fi
@@ -409,26 +422,24 @@ preguntar_acceso() {
     info "Paso 3/6 · Modo de acceso a la aplicación"
     cat <<'MODOS'
     La aplicación siempre escucha en local. Elija cómo se conectará usted:
-      1) Solo local      — solo navegador en este equipo (http://127.0.0.1)
-      2) Tailscale       — RED PRIVADA VPN: acceso desde cualquier equipo
-                           propio con HTTPS automático (recomendado)
-      3) Caddy en LAN    — proxy HTTPS con certificado interno para la oficina
-      4) LAN directa     — HTTP sin cifrar en la red local (NO recomendado)
+      1) Solo local          — solo navegador en este equipo (http://127.0.0.1)
+      2) Tailscale           — RED PRIVADA VPN: acceso desde cualquier equipo
+                               propio con HTTPS automático (recomendado)
+      3) Caddy en LAN        — proxy HTTPS con certificado interno para la oficina
+      4) Proxy HTTPS propio  — proxy inverso HTTPS gestionado por usted (Nginx/Apache/Caddy existente); la app escucha en 127.0.0.1
 MODOS
     local eleccion=""
     if [ "$MODO_NOINTERACTIVO" != "si" ]; then
         preguntar eleccion "Modo de acceso [1/2/3/4]:" \
-            "$(case $MODO_ACCESO in local) echo 1;; tailscale) echo 2;; caddy) echo 3;; lan) echo 4;; *) echo 2;; esac)"
+            "$(case $MODO_ACCESO in local) echo 1;; tailscale) echo 2;; caddy) echo 3;; proxy) echo 4;; *) echo 2;; esac)"
     fi
     case "${eleccion:-$MODO_ACCESO}" in
         1|local)      MODO_ACCESO="local" ;;
         2|tailscale)  MODO_ACCESO="tailscale"; INSTALAR_TAILSCALE="si" ;;
         3|caddy)      MODO_ACCESO="caddy" ;;
-        4|lan)
-            MODO_ACCESO="lan"
-            aviso "Acceso por HTTP plano en la LAN: las contraseñas viajan sin cifrar."
-            [ "$ACEPTAR_TODO" = "si" ] || confirmar "¿Confirma el modo LAN directa sin HTTPS?" n || MODO_ACCESO="tailscale"
-            ;;
+        4|proxy)      MODO_ACCESO="proxy" ;;
+        lan)
+            fatal "El modo 'lan' (HTTP sin cifrar) no está soportado por la aplicación: exige HTTPS fuera de 127.0.0.1. Use 'tailscale', 'caddy' o 'proxy' con URL_PUBLICA=https://..." ;;
         *) fatal "Opción de modo de acceso no válida: $eleccion" ;;
     esac
 
@@ -448,9 +459,16 @@ MODOS
         local)      [ -n "$URL_PUBLICA" ] || URL_PUBLICA="http://127.0.0.1:$PUERTO" ;;
         tailscale)  [ -n "$URL_PUBLICA" ] || URL_PUBLICA="https://${EQUIPO_NOMBRE_NORMALIZADO}.ts.net" ;;
         caddy)      [ -n "$URL_PUBLICA" ] || URL_PUBLICA="https://${DOMINIO_LAN}" ;;
-        lan)        [ -n "$URL_PUBLICA" ] || URL_PUBLICA="http://$(hostname -I 2>/dev/null | awk '{print $1}'):$PUERTO" ;;
+        proxy)      [ -n "$URL_PUBLICA" ] || URL_PUBLICA="https://${EQUIPO_NOMBRE_NORMALIZADO}.local" ;;
     esac
     preguntar URL_PUBLICA "URL pública (CORREDURIA_PUBLIC_URL) — usada en correos y enlaces:" "$URL_PUBLICA"
+    case "$URL_PUBLICA" in
+        http://127.0.0.1|http://127.0.0.1:*|http://localhost|http://localhost:*|http://\[::1\]|http://\[::1\]:*|https://*) ;;
+        http://*)
+            fatal "CORREDURIA_PUBLIC_URL exige HTTPS fuera de loopback (127.0.0.1 / localhost)." ;;
+        *)
+            fatal "CORREDURIA_PUBLIC_URL debe comenzar por https:// o http://127.0.0.1..." ;;
+    esac
 
     if [ "$MODO_ACCESO" != "tailscale" ] && [ "$MODO_NOINTERACTIVO" != "si" ]; then
         if confirmar "¿Instalar también Tailscale para acceso remoto privado?" "$INSTALAR_TAILSCALE"; then
@@ -460,7 +478,6 @@ MODOS
         fi
     fi
     BIND_ADDR="127.0.0.1"
-    [ "$MODO_ACCESO" = "lan" ] && BIND_ADDR="0.0.0.0" || BIND_ADDR="127.0.0.1"
     ok "Modo: $MODO_ACCESO · escucha $BIND_ADDR:$PUERTO · URL pública: $URL_PUBLICA"
 }
 
@@ -601,13 +618,18 @@ ENV
     local drop_dir="/etc/systemd/system/correduria-local.service.d"
     local override="$drop_dir/90-instalador.conf"
     rm -f "$override"
-    if [ "$BIND_ADDR" != "127.0.0.1" ] || [ "$PUERTO" != "8080" ] || [ "$BACKUP_DIR" != "/var/lib/correduria/backups" ]; then
+    if [ "$BIND_ADDR" != "127.0.0.1" ] || [ "$PUERTO" != "8080" ] || [ "$DATA_DIR" != "/var/lib/correduria" ] || [ "$BACKUP_DIR" != "$DATA_DIR/backups" ]; then
         install -d -m 0755 "$drop_dir"
         {
             printf '[Service]\n'
-            printf 'ExecStart=\n'
-            printf 'ExecStart=/opt/correduria/bin/correduria-server serve --host %s --port %s\n' "$BIND_ADDR" "$PUERTO"
-            if [ "$BACKUP_DIR" != "$DATA_DIR/backups" ]; then
+            if [ "$BIND_ADDR" != "127.0.0.1" ] || [ "$PUERTO" != "8080" ]; then
+                printf 'ExecStart=\n'
+                printf 'ExecStart=/opt/correduria/bin/correduria-server serve --host %s --port %s\n' "$BIND_ADDR" "$PUERTO"
+            fi
+            if [ "$DATA_DIR" != "/var/lib/correduria" ]; then
+                printf 'ReadWritePaths=%s\n' "$DATA_DIR"
+            fi
+            if [ "$BACKUP_DIR" != "$DATA_DIR/backups" ] && [ "$BACKUP_DIR" != "/var/lib/correduria/backups" ]; then
                 printf 'ReadWritePaths=%s\n' "$BACKUP_DIR"
             fi
         } >"$override"

@@ -1,6 +1,6 @@
 # Manual de Usuario · Plataforma Correduría
 
-Este manual describe el funcionamiento, la navegación y el uso diario de la plataforma web local de gestión de correduría (versión 0.8.5).
+Este manual describe el funcionamiento, la navegación y el uso diario de la plataforma web local de gestión de correduría (versión 1.0.0).
 
 La aplicación está diseñada para operar de forma local y monousuario, protegiendo los datos confidenciales de los asegurados mediante accesos temporales reforzados y garantizando la trazabilidad documental del negocio.
 
@@ -11,7 +11,7 @@ Para consultar los parámetros técnicos, requisitos de red, proveedores o polí
 ## Índice
 
 1. [Acceso y Seguridad de la Sesión](#1-acceso-y-seguridad-de-la-sesión)
-2. [Estructura General de la Interfaz](#2-estructura-general-de-la-interfaz)
+2. [Estructura General de la Interfaz y Diseño Adaptable](#2-estructura-general-de-la-interfaz-y-diseño-adaptable-escritorio-tablet-y-móvil)
 3. [Resumen (Panel de Control de Vencimientos)](#3-resumen-panel-de-control-de-vencimientos)
 4. [Calendario de Vencimientos](#4-calendario-de-vencimientos)
 5. [Avisos y Notificaciones](#5-avisos-y-notificaciones)
@@ -19,7 +19,7 @@ Para consultar los parámetros técnicos, requisitos de red, proveedores o polí
 7. [Gestión de Pólizas y Periodos](#7-gestión-de-pólizas-y-periodos)
 8. [Gestor Documental (PDFs y Autorizaciones)](#8-gestor-documental-pdfs-y-autorizaciones)
 9. [Privacidad y Derechos RGPD (Operativa y Exportación)](#9-privacidad-y-derechos-rgpd-operativa-y-exportación)
-10. [Asistente de Consulta (IA y Consultas Directas)](#10-asistente-de-consulta-ia-y-consultas-directas)
+10. [Asistente de Consulta (Chatbot IA y Consultas Directas)](#10-asistente-de-consulta-chatbot-ia-y-consultas-directas)
 11. [Copias de Seguridad (Uso del Operador)](#11-copias-de-seguridad-uso-del-operador)
 12. [Mantenimiento y Diagnóstico Operativo](#12-mantenimiento-y-diagnóstico-operativo)
 13. [Tabla Resumen de Módulos y Referencias de Configuración](#13-tabla-resumen-de-módulos-y-referencias-de-configuración)
@@ -66,7 +66,7 @@ Para consultar los parámetros técnicos, requisitos de red, proveedores o polí
 La plataforma cuenta con una arquitectura **App Shell responsiva** diseñada para ofrecer una experiencia ergonómica tanto en monitores de oficina como en tablets y teléfonos móviles:
 
 ### 2.1 Menú lateral categorizado (`Sidebar`)
-Organiza los módulos del negocio en tres áreas operativas claras, mostrando en su cabecera el logotipo, el nombre de la correduría y la versión activa (p. ej., `v0.8.2`), y en el pie el usuario activo junto al botón *Cerrar sesión*:
+Organiza los módulos del negocio en tres áreas operativas claras, mostrando en su cabecera el logotipo, el nombre de la correduría y la versión activa (p. ej., `v1.0.0`), y en el pie el usuario activo junto al botón *Cerrar sesión*:
 1. **Control y Vencimientos**:
    * **Resumen (`📊`)**: Panel ejecutivo con tarjetas KPI de vencimientos inmediatos y avisos.
    * **Calendario (`📅`)**: Vista mensual y diaria interactiva en doble columna (calendario + detalle lateral).
@@ -76,10 +76,10 @@ Organiza los módulos del negocio en tres áreas operativas claras, mostrando en
    * **Pólizas (`🛡️`)**: Control de contratos, periodos de vigencia y plantillas de comisión con vista en tarjetas o tabla.
    * **Documentos (`📄`)**: Repositorio de ficheros PDF cifrados (autorizaciones, pólizas y anexos).
 3. **Inteligencia y Sistema**:
-   * **Configuración (`⚙️`)**: Parámetros de numeración, catálogos, condiciones económicas, suscripciones de IA y seguridad de cuenta.
+   * **Configuración (`⚙️`)**: Parámetros organizados por pestañas (*Todas*, *Cartera y catálogos*, *Remuneración*, *Asistente IA* y *Cuenta y correo*), junto con accesos directos en *Otras políticas del sistema*.
    * **Backups (`💾`)**: Ejecución manual, política y descarga de copias de seguridad cifradas.
    * **Privacidad (`⚖️`)**: Tramitación de derechos RGPD y exportación de fichas en ZIP.
-   * **Mantenimiento (`🛠️`)**: Diagnóstico de salud, sondas técnicas y canal de actualizaciones.
+   * **Mantenimiento (`🛠️`)**: Actualizaciones firmadas (incluyendo actualización en 1 clic), instalador de certificado HTTPS para dispositivos, diagnóstico de salud y sondas técnicas.
    * **Consultar asistente (`🤖`)**: Acceso al asistente de consulta documental e histórica.
 
 ### 2.2 Barra superior de herramientas (`Topbar`)
@@ -89,6 +89,7 @@ Situada de forma fija en la parte superior del área de trabajo, incorpora:
 * **Indicador de Bóveda de Seguridad (`🔒 / 🔓`)**: Muestra el estado de bloqueo de identidades y permite revocar accesos temporales con un clic (*Bloquear*).
 * **Conmutador de vista por dispositivo (`🖥️ / 📱 / 📲`)**: Permite alternar entre la vista automática/escritorio (`🖥️`), la vista optimizada de Tablet (`📱`) y la vista de Teléfono Móvil (`📲`).
 * **Selector de tema Claro / Oscuro (`🌙 / ☀️`)**: Conmuta entre el tema claro corporativo y el modo oscuro de alto contraste, recordando su preferencia en el navegador.
+* **Banner de avisos (`notice`)**: Muestra el resultado de las acciones con botón de cierre (`✕`); los avisos informativos se ocultan automáticamente a los 8 segundos, mientras que los errores permanecen visibles hasta cerrarlos manualmente.
 
 ### 2.3 Comportamiento en Escritorio, Tablet y Teléfono Móvil
 * **Versión Escritorio (`> 1024px`)**: Menú lateral fijo a la izquierda, vista dividida a dos columnas en el Calendario y formularios de alta/configuración en cuadrícula de dos columnas.
@@ -349,8 +350,8 @@ El sistema incorpora un **Chatbot conversacional real** disponible desde cualqui
 * **Descarga de modelos en tiempo real**: Al pulsar el botón **🔄 Modelos**, el sistema conecta directamente con su cuenta de ChatGPT Plus/Pro o proveedor configurado, descarga la lista oficial de modelos habilitados para su plan (p. ej. `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-6-luna`, etc.) y actualiza el desplegable automáticamente.
 * **Conmutación rápida sin contraseña**: Puede cambiar de un modelo a otro directamente desde el desplegable del chat sin necesidad de reintroducir contraseñas de seguridad.
 
-### 10.3 Conexión rápida («Añadir suscripción / ⚙️»)
-* Puede vincular o gestionar su suscripción pulsando el icono **⚙️** de la barra del chat o desde **Configuración** → **Modelos de IA y Suscripciones** → **Añadir suscripción**.
+### 10.3 Conexión rápida («Añadir suscripción» y ajustes)
+* Puede vincular o gestionar su suscripción pulsando el icono **⚙️** de la barra del chat o desde **Configuración** → **🤖 Asistente IA** → **Modelos de IA y Suscripciones** → **Añadir suscripción** (en esa misma tarjeta dispone de **Ajustes avanzados y memoria** para abrir el panel completo del asistente).
 * La ventana emergente permite elegir:
   * **Suscripción ChatGPT Plus / Pro (Auth automático)**: Vincula su cuenta Plus o Pro desde el navegador mediante código web único o redirección local (método OpenCode OAuth), sin claves API y sin usar la consola.
   * **Clave API (API Key)**: Permite introducir una clave `sk-...` de OpenAI Platform, un proveedor compatible o un servidor local (Ollama/vLLM).
@@ -389,39 +390,56 @@ Disponible de inmediato.
   * Introduzca su contraseña actual.
   * Se descargará el archivo `correduria-backup-recovery.key`.
   > [!CAUTION]
-  > Este archivo es indispensable para descifrar las copias de seguridad en caso de desastre. Debe custodiarlo fuera del servidor o Raspberry Pi (p. ej., en un gestor de contraseñas o unidad externa cifrada). Si pierde este archivo y el equipo original se avería, las copias de seguridad no podrán recuperarse.
+  > Este archivo es indispensable para descifrar las copias de seguridad en caso de desastre. Debe custodiarlo fuera del equipo de instalación (el servidor donde corre la aplicación; p. ej., en un gestor de contraseñas o unidad externa cifrada). Si pierde este archivo y el equipo original se avería, las copias de seguridad no podrán recuperarse.
 * **Descargar copia**:
   * En la lista de archivos de copia, pulse *Descargar* e introduzca su contraseña para guardar el fichero `.crbk` en su ordenador local.
 
 ### 11.4 Configuración requerida
 * [Manual de Configuración · Sección 7 (Política y Almacenamiento de Copias de Seguridad)](manual-configuracion.md#7-política-y-almacenamiento-de-copias-de-seguridad-backups).
-* [Manual de Configuración · Sección 11 (Buenas Prácticas de Backup)](manual-configuracion.md#11-buenas-prácticas-de-seguridad-y-almacenamiento-de-backups).
+* [Manual de Configuración · Sección 12 (Buenas Prácticas de Backup)](manual-configuracion.md#12-buenas-prácticas-de-seguridad-y-almacenamiento-de-backups).
 
 ---
 
 ## 12. Mantenimiento y Diagnóstico Operativo
 
 ### 12.1 Utilidad
-Proporciona al titular y al servicio técnico visibilidad en tiempo real sobre el estado del servidor, permisos de almacenamiento, ejecución de pruebas de componentes y gestión de actualizaciones del software.
+Centraliza la gestión de actualizaciones firmadas del software, la descarga del instalador de certificado HTTPS para sus dispositivos y la visibilidad en tiempo real del estado del servidor, permisos de almacenamiento y pruebas de componentes.
 
 ### 12.2 Disponibilidad
-Disponible de inmediato en la pestaña *Mantenimiento*.
+Disponible de inmediato en la pestaña *Mantenimiento*, organizada en tres tarjetas: **Actualizaciones del sistema**, **Certificado HTTPS para sus dispositivos** y **Estado de la instalación**.
 
 ### 12.3 Comprobaciones disponibles (Sondas bajo demanda)
-Todas las comprobaciones solicitan la contraseña del usuario y registran la fecha y resultado en un historial auditable:
-1. **Probar correo saliente (SMTP)**: Envía un mensaje sintético de prueba a la cuenta de correo de la correduría para comprobar conectividad y autenticación.
+Dentro de la tarjeta *Estado de la instalación*, todas las comprobaciones solicitan la contraseña del usuario y registran la fecha y resultado en un historial auditable:
+1. **Probar correo saliente**: Envía un mensaje sintético de prueba a la cuenta de correo de la correduría para comprobar conectividad y autenticación SMTP.
 2. **Probar proveedor IA**: Realiza una petición mínima de verificación (`{"status": "ok"}`) contra el endpoint configurado (API o ChatGPT) sin enviar datos de clientes ni PDFs.
 3. **Probar destino de copias**: Verifica permisos de escritura y espacio libre en el directorio configurado para los backups.
 4. **Verificar restauración en entorno aislado**: Ejecuta una prueba automática de restauración de la última copia de seguridad completa sobre un directorio temporal aislado, comprobando la integridad de SQLite y los PDFs sin interferir con el servicio activo.
 
 ### 12.4 Canal de actualizaciones firmadas
-* **Comprobar actualizaciones**: Comprueba si existe una versión superior firmada criptográficamente (Ed25519) en el canal de distribución oficial.
-* **Descargar actualización firmada**: Descarga el paquete verificado a la zona de preparación (*staging*).
-* La instalación definitiva se ejecuta mediante terminal por el operador del sistema (`correduria update-install`). La aplicación nunca se actualiza ni se reinicia automáticamente sin autorización humana.
+La tarjeta **Actualizaciones del sistema** muestra las insignias de estado (*Versión actual*, *Canal HTTPS activo / Canal sin configurar*, *Derecho vigente hasta ... / Sin derecho configurado* y *Actualización en 1 clic disponible / Instalación manual (CLI)*), el **ID de instalación** con el botón **Copiar ID** y el resultado de la última operación o paquete en *staging*:
+* **Comprobar actualizaciones**: Consulta si existe una versión superior firmada criptográficamente (Ed25519) en el canal oficial y valida compatibilidad y derecho de actualización (*entitlement*).
+* **Actualizar ahora a vX.Y.Z (actualización en 1 clic)**: Cuando se detecta una versión nueva autorizada y el servidor dispone del asistente automático (`correduria-updater.path`), aparece este botón. Al pulsarlo e introducir su contraseña, el sistema descarga y verifica el paquete firmado, lo instala con privilegios de sistema, reinicia el servicio y recarga automáticamente la interfaz web al completar el reinicio.
+  > [!NOTE]
+  > La aplicación nunca se actualiza ni se reinicia automáticamente por sí sola: toda actualización requiere la confirmación expresa y contraseña del titular (o la ejecución manual del operador).
+* **Descargar actualización firmada / Instalación manual (CLI)**: Descarga el paquete verificado y su manifiesto a la zona de preparación (*staging*), útil cuando el asistente automático no está habilitado o se prefiere aplicar posteriormente desde terminal (`sudo /usr/sbin/correduria-apply-update` o `sudo /opt/correduria/bin/correduria-server update-install ...`).
 
-### 12.5 Configuración requerida
+### 12.5 Certificado HTTPS para sus dispositivos
+Cuando el servidor utiliza una autoridad certificadora local propia (por ejemplo, Caddy con certificado interno en la LAN), la tarjeta **Certificado HTTPS para sus dispositivos** muestra el *Sitio HTTPS*, su periodo de *Validez*, la *Autoridad emisora* y la **Huella SHA-256** (con botón **Copiar huella** para contrastarla al importar el certificado).
+
+Desde esta tarjeta puede descargar el instalador específico para cada equipo cliente y evitar los avisos de certificado del navegador:
+* **🍎 Perfil Apple (Mac / iPhone / iPad)** (`.mobileconfig`): Recomendado en equipos Apple. En iPhone o iPad, tras instalar el perfil descargado, active la confianza total en *Ajustes → General → Información → Ajustes de certificados*.
+* **💻 Script macOS (`.command`)**: Alternativa automática para Mac; al abrirlo solicita su contraseña de administrador para añadir la CA raíz al llavero del sistema.
+* **🪟 Script Windows (`.cmd`)**: Descárguelo, haga doble clic y acepte el aviso de administrador para registrar la CA en el almacén raíz de Windows.
+* **🐧 Script Linux (`.sh`)**: Ejecútelo en una terminal (`bash instalar-certificado-linux-*.sh`).
+* **📄 Certificado raíz (`.crt`)**: Fichero X.509 público para Android (*Ajustes → Seguridad → Cifrado y credenciales → Instalar certificado CA*) o importación manual.
+
+> [!NOTE]
+> Si accede únicamente por HTTP en loopback (`127.0.0.1`) o mediante HTTPS gestionado externamente (como Tailscale HTTPS), esta tarjeta indicará que no existe certificado raíz local publicado en el servidor.
+
+### 12.6 Configuración requerida
 * [Manual de Configuración · Sección 9 (Canal de Actualizaciones)](manual-configuracion.md#9-canal-de-actualizaciones-firmadas).
-* [Manual de Configuración · Sección 10 (Sondas y Diagnóstico)](manual-configuracion.md#10-mantenimiento-y-diagnóstico-del-sistema).
+* [Manual de Configuración · Sección 10 (Mantenimiento, Acceso Multi-Origen y Certificado HTTPS)](manual-configuracion.md#10-mantenimiento-y-diagnóstico-del-sistema).
+* [Manual de Configuración · Sección 12.5 (Seguridad operativa en red)](manual-configuracion.md#125-seguridad-operativa-en-red-dispositivos-móviles-y-tratamiento-de-datos).
 
 ---
 
@@ -441,5 +459,5 @@ Todas las comprobaciones solicitan la contraseña del usuario y registran la fec
 | **Privacidad (RGPD y ZIP)** | Disponible | No | [Manual Configuración · Sección 7](manual-configuracion.md#7-política-y-almacenamiento-de-copias-de-seguridad-backups) |
 | **Asistente (Consulta directa)** | Disponible | No | — |
 | **Asistente (Modo IA)** | Requiere credenciales | Sí (API o suscripción ChatGPT) | [Manual Configuración · Sección 8](manual-configuracion.md#8-proveedor-de-inteligencia-artificial-y-memoria-del-asistente) |
-| **Backups (Crear / Descargar)** | Disponible | Sí (horario, retención y destino) | [Manual Configuración · Secciones 7 y 11](manual-configuracion.md#7-política-y-almacenamiento-de-copias-de-seguridad-backups) |
-| **Mantenimiento (Sondas / Updates)** | Disponible | Opcional (URL canal / claves) | [Manual Configuración · Secciones 9 y 10](manual-configuracion.md#9-canal-de-actualizaciones-firmadas) |
+| **Backups (Crear / Descargar)** | Disponible | Sí (horario, retención y destino) | [Manual Configuración · Secciones 7 y 12](manual-configuracion.md#7-política-y-almacenamiento-de-copias-de-seguridad-backups) |
+| **Mantenimiento (Updates / Cert / Sondas)** | Disponible | Opcional (canal, entitlement, CA local) | [Manual Configuración · Secciones 9 y 10](manual-configuracion.md#9-canal-de-actualizaciones-firmadas) |

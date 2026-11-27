@@ -32,10 +32,10 @@ Use el último [release](https://github.com/pericorl-tech/correduria-release/rel
 
 Cada release incluye:
 
-* `correduria-local_<versión>_arm64.deb` — paquete binario para **arm64** (glibc ≥ 2.41). Incluye su *runtime*; no requiere Python ni dependencias del sistema.
-* `correduria-local_<versión>_amd64.deb` — paquete binario para **amd64/x86_64** (glibc ≥ 2.43), desde v0.8.3.
-* `manifest-<versión>.json` — manifiesto firmado (Ed25519) con la URL del artefacto, su SHA-256 y su tamaño exacto, para el canal de actualizaciones.
-* `manifest-latest.json` — el mismo manifiesto firmado de **la versión vigente**, bajo un nombre estable: es la URL recomendada para configurar instalaciones (`releases/latest/download/manifest-latest.json`) y no cambia entre versiones. Publicada una nueva versión, se **reemplaza** este asset con el manifiesto nuevo firmado.
+* `correduria-local_<versión>_arm64.deb` — paquete binario para **arm64** (glibc ≥ 2.41; disponible hasta `v0.8.3`). Incluye su *runtime*; no requiere Python ni dependencias del sistema.
+* `correduria-local_<versión>_amd64.deb` — paquete binario para **amd64/x86_64** (glibc ≥ 2.43; disponible desde `v0.8.3`, incluyendo `v1.0.0`).
+* `manifest-<versión>.json` (o `manifest-<versión>-amd64.json`) — manifiesto firmado (Ed25519) con la URL del artefacto, su SHA-256 y su tamaño exacto, para el canal de actualizaciones.
+* `manifest-latest.json` (`arm64`) y `manifest-latest-amd64.json` (`amd64`) — manifiestos firmados de **la versión vigente** de cada arquitectura bajo nombre estable (`releases/latest/download/...`), actualizados al publicar un nuevo release de la arquitectura correspondiente.
 
 ## Instalación (Ubuntu/Debian arm64/amd64)
 
@@ -52,10 +52,10 @@ El instalador:
 1. Comprueba SO, arquitectura (arm64/amd64) y glibc (≥ 2.41 en arm64, ≥ 2.43 en amd64).
 2. Pregunta el **nombre del equipo** (*hostname* donde se instalará: mini PC, escritorio o servidor) y la zona horaria.
 3. Localiza o descarga el paquete `.deb` y verifica su SHA-256 contra el manifiesto.
-4. Pide el **modo de acceso**: solo local, **Tailscale** (red privada con HTTPS automático, recomendado), proxy Caddy con HTTPS interno en la oficina, o LAN directa.
+4. Pide el **modo de acceso**: solo local, **Tailscale** (red privada con HTTPS automático, recomendado), proxy Caddy con HTTPS interno en la oficina, o **proxy HTTPS propio** (la app escucha siempre en `127.0.0.1`).
 5. Pide directorio de datos, directorio de backups y parámetros del canal de actualizaciones firmado.
 6. Instala las **dependencias de terceros**: `ca-certificates` y, si se eligen, **Tailscale** (repositorio oficial `tailscale.com`) y **Caddy** (proxy HTTPS).
-7. Instala el paquete, genera `/etc/correduria/application.env` (y un *override* de systemd si procede) y muestra el **enlace de primera puesta en marcha**.
+7. Instala el paquete, genera `/etc/correduria/application.env` (incluyendo `CORREDURIA_LOCAL_CA_CERT_FILE`, clave pública por defecto y exportación automática de la CA de Caddy en modo Caddy), habilita `correduria-updater.path` para actualizaciones en 1 clic y muestra el **enlace de primera puesta en marcha**.
 
 Opciones: `--help`, `--unattended respuestas.conf` (instalación desatendida; ver [`installer-linux/answers.example.conf`](installer-linux/answers.example.conf)), `--solo-config` (reconfigurar sin reinstalar), `--deb <ruta|URL>`, `--respuestas <fichero>` (exportar las respuestas para reproducir la instalación).
 
@@ -82,7 +82,7 @@ Opciones: `--help`, `--unattended respuestas.conf` (instalación desatendida; ve
    sudo dpkg -i correduria-local_<versión>_<arch>.deb
    ```
 
-   El postinst crea el usuario `correduria-local`, el directorio de datos `/var/lib/correduria` (permisos `0700`), y habilita el servicio `correduria-local.service`.
+   El `postinst` crea el usuario `correduria-local`, el directorio de datos `/var/lib/correduria` (permisos `0700`), preconfigura el canal de actualizaciones en `/etc/correduria/application.env` y habilita `correduria-local.service` junto con `correduria-updater.path`.
 
 4. Compruebe el servicio y obtenga el enlace de primera configuración:
 
@@ -93,7 +93,7 @@ Opciones: `--help`, `--unattended respuestas.conf` (instalación desatendida; ve
 
 5. Abra `http://127.0.0.1:8080` en el propio equipo (o el enlace mostrado por el paso anterior) y **durante la primera puesta en marcha cree su cuenta** (correo, contraseña de 12–128 caracteres y nombre del negocio). El código de instalación queda invalidado al usarse.
 
-Para publicar la web en LAN con HTTPS, el instalador configura automáticamente **Tailscale Serve** (red privada con certificado TLS gestionado) o **Caddy** (proxy con certificado interno); si instala el paquete a mano, la app siempre escucha en `127.0.0.1:8080` por defecto y deberá montar usted el proxy.
+Para publicar la web en LAN con HTTPS, el instalador configura automáticamente **Tailscale Serve** (red privada con certificado TLS gestionado) o **Caddy** (proxy con certificado interno, exportando su CA pública para descarga guiada desde **Mantenimiento → Certificado HTTPS para sus dispositivos**). En servidores Ubuntu dedicados con `caddy` y `avahi-daemon`, también dispone de `sudo correduria-configure-access [equipo.tailnet.ts.net]` para habilitar acceso multi-origen LAN Bonjour (`https://<hostname>.local/`) + Tailscale (`CORREDURIA_ADDITIONAL_PUBLIC_URLS`). Si instala el paquete a mano sin usar `install.sh` ni `correduria-configure-access`, la app escucha en `127.0.0.1:8080` por defecto y deberá configurar su proxy.
 
 ## Dependencias de terceros
 
@@ -109,19 +109,22 @@ El resto de servicios externos (SMTP para avisos, proveedores de IA) son opciona
 
 ## Actualizaciones
 
-La aplicación nunca se actualiza sola:
+La aplicación nunca se actualiza sola sin autorización del usuario:
 
-1. En **Mantenimiento → Comprobar actualizaciones** la app compara su versión con un manifiesto firmado, descarga a *staging* y verifica firma, hash y derecho de actualización de la instalación.
-2. Un operador ejecuta en terminal:
+1. En **Mantenimiento → Actualizaciones del sistema**, **Comprobar actualizaciones** compara la versión instalada con el manifiesto firmado Ed25519 y valida compatibilidad y derecho de actualización (`entitlement.json` asociado al `installation_id` copiable desde la propia tarjeta).
+2. **Actualización verificada en 1 clic (desde `v0.8.5` en Linux con `.deb`)**: si hay una nueva versión autorizada y el servidor tiene activo `correduria-updater.path`, aparece el botón **Actualizar ahora a vX.Y.Z**. Al confirmarlo con su contraseña, la app descarga y verifica el paquete en *staging* y crea la solicitud `apply.request`; `systemd` ejecuta `/usr/sbin/correduria-apply-update` (`correduria-server apply-staged-update` como `root`), revalida firma, SHA-256, compatibilidad y derecho en copia aislada, instala el `.deb` con `dpkg`, reinicia el servicio y la web se recarga automáticamente.
+3. **Alternativa manual por CLI**: también puede pulsar **Descargar actualización firmada** y aplicar el paquete desde terminal como operador:
 
    ```bash
-   /opt/correduria/bin/correduria-server update-install
+   sudo /usr/sbin/correduria-apply-update
+   # o explícitamente con update-install:
+   sudo /opt/correduria/bin/correduria-server update-install --manifest <ruta> --package <ruta> --public-key /etc/correduria/release-public.key --entitlement /etc/correduria/entitlement.json --data-dir /var/lib/correduria
    ```
 
-El canal de manifiesto se configura vía variables en `/etc/correduria/application.env` (`CORREDURIA_UPDATE_MANIFEST_URL`, `CORREDURIA_UPDATE_PUBLIC_KEY_FILE`, `CORREDURIA_UPDATE_ENTITLEMENT_FILE`) o desde el panel **Configuración / Mantenimiento**. Los manifiestos generados a partir de este repositorio apuntan aquí (`releases/download/`), de modo que instalaciones nuevas no necesiten credenciales para comprobar actualizaciones.
+El canal de manifiesto se configura exclusivamente a nivel de sistema en `/etc/correduria/application.env` (`CORREDURIA_UPDATE_MANIFEST_URL`, `CORREDURIA_UPDATE_PUBLIC_KEY_FILE`, `CORREDURIA_UPDATE_ENTITLEMENT_FILE`, preconfigurados por el `.deb` y `install.sh` y no editables desde la web). Los manifiestos generados a partir de este repositorio apuntan aquí (`releases/download/`), de modo que instalaciones nuevas no necesiten credenciales para comprobar actualizaciones.
 
 > [!IMPORTANT]
-> **`update-install` es una función interna de la aplicación `correduria-server`, no del sistema operativo.** Ni Linux ni Windows aportan ese mecanismo para aplicaciones de terceros: es el propio binario quien verifica el manifiesto firmado Ed25519, el hash y el derecho de actualización, y aplica el paquete. En Windows ocurre lo mismo: el subcomando `update-install` deberá existir **dentro de `correduria-server.exe`** (repositorio privado, fase 2); hasta entonces, el instalador [`installer-windows`](installer-windows/) aplica las actualizaciones con su script externo [`tools/Update-Correduria.ps1`](installer-windows/tools/Update-Correduria.ps1) (verifica SHA-256 y tamaño, para el servicio, sustituye ficheros y arranca). El **canal** (manifiesto firmado, multi-arquitectura) es idéntico para ambos sistemas operativos; lo que cambia es solo el aplicador.
+> **`update-install` y `apply-staged-update` son funciones internas de la aplicación `correduria-server`, no del sistema operativo.** Ni Linux ni Windows aportan ese mecanismo para aplicaciones de terceros: es el propio binario quien verifica el manifiesto firmado Ed25519, el hash y el derecho de actualización, y aplica el paquete. En Windows ocurre lo mismo: el subcomando equivalente deberá existir **dentro de `correduria-server.exe`** (repositorio privado, fase 2); hasta entonces, el instalador [`installer-windows`](installer-windows/) aplica las actualizaciones con su script externo [`tools/Update-Correduria.ps1`](installer-windows/tools/Update-Correduria.ps1) (verifica SHA-256 y tamaño, para el servicio, sustituye ficheros y arranca). El **canal** (manifiesto firmado, multi-arquitectura) es idéntico para ambos sistemas operativos; lo que cambia es solo el aplicador.
 
 ## Instalación (Windows 10/11 x64 · piloto)
 
@@ -136,9 +139,9 @@ Requiere el artefacto `correduria-local_<versión>_win32-x64.zip`. **Su generaci
 
 ## Manuales y documentación
 
-* [Manual de Instalación](manual-instalacion.md): instalación paso a paso en un equipo nuevo (Linux guiado/desatendido y Windows piloto), preguntas explicadas, primeras configuraciones, comprobaciones y resolución de incidencias.
-* [Manual de Usuario](manual-usuario.md): uso diario de cada módulo (resumen, calendario, avisos, clientes, pólizas, documentos, privacidad, asistente, backups y mantenimiento).
-* [Manual de Configuración](manual-configuracion.md): cuenta, SMTP, códigos de cliente, catálogos, comisiones, política de vencimientos, backups (regla 3-2-1), proveedores de IA (API o suscripción ChatGPT Plus/Pro), canal de actualizaciones y diagnóstico.
+* [Manual de Instalación](manual-instalacion.md): instalación paso a paso en un equipo nuevo (Linux guiado/desatendido y Windows piloto), preguntas explicadas, acceso multi-origen, primeras configuraciones, comprobaciones y resolución de incidencias.
+* [Manual de Usuario](manual-usuario.md): uso diario de cada módulo (resumen, calendario, avisos, clientes, pólizas, documentos, privacidad, asistente, backups y mantenimiento con actualizaciones en 1 clic e instalador de certificado HTTPS).
+* [Manual de Configuración](manual-configuracion.md): cuenta, SMTP, códigos de cliente, catálogos, comisiones, política de vencimientos, backups (regla 3-2-1), proveedores de IA (API o suscripción ChatGPT Plus/Pro), acceso multi-origen, certificado HTTPS local, canal de actualizaciones y diagnóstico.
 * [Análisis del instalador para Windows](docs/analisis-instalador-windows.md): viabilidad, componentes necesarios y elementos que habría que adaptar del diseño actual (servicio, permisos y canal de actualizaciones).
 
 ## Seguridad

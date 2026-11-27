@@ -1,8 +1,10 @@
 # Manual de Configuración para el Usuario · Plataforma Correduría
 
-Este documento detalla todas las opciones de configuración disponibles en la plataforma de correduría (versión 0.8.5), su propósito, el procedimiento para incorporar credenciales y suscripciones de terceros (suscripción automática de ChatGPT Plus/Pro, APIs de IA, servidores de correo SMTP) y las directrices de buenas prácticas operativas, especialmente en lo relativo a copias de seguridad y su custodia externa.
+Este documento detalla todas las opciones de configuración disponibles en la plataforma de correduría (versión 1.0.0), su propósito, el procedimiento para incorporar credenciales y suscripciones de terceros (suscripción automática de ChatGPT Plus/Pro, APIs de IA, servidores de correo SMTP), el acceso multi-origen (LAN/Tailscale), el certificado HTTPS local, las actualizaciones verificadas en 1 clic y las directrices de buenas prácticas operativas, especialmente en lo relativo a copias de seguridad y su custodia externa.
 
 Para la operativa diaria de cada sección de la interfaz, consulte el [Manual de Usuario](manual-usuario.md).
+
+La pestaña **Configuración** organiza sus tarjetas mediante una barra superior de categorías (**📋 Todas**, **🗂️ Cartera y catálogos**, **💶 Remuneración**, **🤖 Asistente IA** y **🔐 Cuenta y correo**), incluyendo accesos directos en *Otras políticas del sistema* hacia **Avisos**, **Backups** y **Mantenimiento**.
 
 ---
 
@@ -18,16 +20,19 @@ Para la operativa diaria de cada sección de la interfaz, consulte el [Manual de
 8. [Proveedor de Inteligencia Artificial y Memoria del Asistente](#8-proveedor-de-inteligencia-artificial-y-memoria-del-asistente)
 9. [Canal de Actualizaciones Firmadas](#9-canal-de-actualizaciones-firmadas)
 10. [Mantenimiento y Diagnóstico del Sistema](#10-mantenimiento-y-diagnóstico-del-sistema)
+    - [10.1 Diagnóstico de estado y sondas](#101-diagnóstico-de-estado-y-sondas)
+    - [10.2 Acceso multi-origen (LAN Bonjour y Tailscale)](#102-acceso-multi-origen-lan-bonjour-y-tailscale)
+    - [10.3 Certificado HTTPS local para dispositivos cliente](#103-certificado-https-local-para-dispositivos-cliente)
 11. [Guía Paso a Paso: Credenciales y Autenticación con Terceros](#11-guía-paso-a-paso-credenciales-y-autenticación-con-terceros)
     - [11.1 Servidores de Correo Saliente (SMTP)](#111-servidores-de-correo-saliente-smtp)
     - [11.2 API Keys de Proveedores de IA (OpenAI y compatibles)](#112-api-keys-de-proveedores-de-ia-openai-y-compatibles)
-    - [11.3 Suscripción de ChatGPT (Plus / Pro mediante Sign in with ChatGPT)](#113-suscripción-de-chatgpt-plus--pro-mediante-sign-in-with-chatgpt)
+    - [11.3 Suscripción de ChatGPT (Plus / Pro: vinculación automática desde la web)](#113-suscripción-de-chatgpt-plus--pro-vinculación-automática-desde-la-web)
 12. [Buenas Prácticas de Seguridad y Almacenamiento de Backups](#12-buenas-prácticas-de-seguridad-y-almacenamiento-de-backups)
-    - [12.1 El riesgo del almacenamiento único en el miniPC / Raspberry Pi](#121-el-riesgo-del-almacenamiento-único-en-el-minipc--raspberry-pi)
+    - [12.1 El riesgo del almacenamiento único en el equipo de instalación](#121-el-riesgo-del-almacenamiento-único-en-el-equipo-de-instalación)
     - [12.2 Dónde almacenar las copias de seguridad (Regla 3-2-1)](#122-dónde-almacenar-las-copias-de-seguridad-regla-3-2-1)
     - [12.3 Custodia de la Clave de Recuperación criptográfica](#123-custodia-de-la-clave-de-recuperación-criptográfica)
     - [12.4 Ensayos periódicos de restauración offline](#124-ensayos-periódicos-de-restauración-offline)
-    - [12.5 Seguridad operativa en red y tratamiento de datos](#125-seguridad-operativa-en-red-y-tratamiento-de-datos)
+    - [12.5 Seguridad operativa en red, dispositivos móviles y tratamiento de datos](#125-seguridad-operativa-en-red-dispositivos-móviles-y-tratamiento-de-datos)
 13. [Tabla Cruzada: Configuraciones y Secciones del Manual de Usuario](#13-tabla-cruzada-configuraciones-y-secciones-del-manual-de-usuario)
 
 ---
@@ -46,7 +51,7 @@ La plataforma funciona bajo un modelo monousuario exclusivo. En cada instalació
 * **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 1.1 (Setup)](manual-usuario.md#11-primera-puesta-en-marcha-setup).
 
 ### 1.2 Cambio de contraseña
-* **Ubicación en la interfaz**: Pestaña **Configuración** → Tarjeta *Seguridad de su cuenta*.
+* **Ubicación en la interfaz**: Pestaña **Configuración** → sección **🔐 Cuenta y correo** → Tarjeta *Seguridad de su cuenta* (junto a la tarjeta informativa *Estado de la cuenta*).
 * **Parámetros**:
   * `Contraseña actual`: Validación de seguridad del titular.
   * `Nueva contraseña` y `Repita la nueva contraseña`: Entre 12 y 128 caracteres.
@@ -65,7 +70,7 @@ Permite que la instalación envíe correos electrónicos para dos funciones excl
 > La aplicación nunca envía correos a clientes finales ni asegurados; el único destinatario es la cuenta registrada del mediador.
 
 ### 2.1 Parámetros de configuración
-* **Ubicación en la interfaz**: Pestaña **Configuración** → Tarjeta *Correo de recuperación*.
+* **Ubicación en la interfaz**: Pestaña **Configuración** → sección **🔐 Cuenta y correo** → Tarjeta *Correo de recuperación*.
 * **Campos**:
   * `Servidor SMTP`: Dirección del servidor (p. ej., `smtp.servidor.com`, `smtp.gmail.com`).
   * `Puerto`: Puerto de conexión TCP (típicamente `587` para STARTTLS o `465` para SSL/TLS directo).
@@ -76,7 +81,7 @@ Permite que la instalación envíe correos electrónicos para dos funciones excl
   * `Usuario SMTP`: Nombre de usuario o cuenta de autenticación.
   * `Contraseña del correo`: Clave SMTP o contraseña de aplicación específica. Si se deja vacía al actualizar otros campos, se conserva la clave existente (siempre que no cambie el host ni el usuario).
   * `Su contraseña actual de la aplicación`: Clave de la cuenta local para autorizar la modificación.
-* **Acción de verificación**: Botón *Enviar un enlace de recuperación de prueba*. Envía un correo real para validar la configuración antes de guardarla como definitiva.
+* **Acción de verificación**: Botón **Enviar correo de prueba**. Envía un correo real de prueba/recuperación para validar la configuración antes de guardarla o comprobar la entrega en su buzón.
 * **Referencia en el Manual de Usuario**: [Manual de Usuario · Secciones 1.3 (Forgot/Reset) y 5 (Avisos)](manual-usuario.md#13-recuperación-de-contraseña-forgot--reset).
 
 ---
@@ -86,7 +91,7 @@ Permite que la instalación envíe correos electrónicos para dos funciones excl
 El código de cliente es la clave primaria inmutable que identifica la ficha en toda la aplicación. Permite trabajar de forma seudonimizada en los listados generales sin exponer datos personales.
 
 ### 3.1 Parámetros de configuración
-* **Ubicación en la interfaz**: Pestaña **Configuración** → Tarjeta *Códigos de cliente*.
+* **Ubicación en la interfaz**: Pestaña **Configuración** → sección **🗂️ Cartera y catálogos** → Tarjeta *Códigos de cliente*.
 * **Campos**:
   * `Modo habitual`:
     * `Automático`: El sistema asigna el código correlativo según el patrón al crear el cliente si se deja vacío.
@@ -115,7 +120,7 @@ El código de cliente es la clave primaria inmutable que identifica la ficha en 
 Permite registrar las entidades aseguradoras con las que opera la correduría y las tipologías de seguro (ramos).
 
 ### 4.1 Parámetros de configuración
-* **Ubicación en la interfaz**: Pestaña **Configuración** → Tarjetas *Compañías propias* y *Tipos de seguro*.
+* **Ubicación en la interfaz**: Pestaña **Configuración** → sección **🗂️ Cartera y catálogos** → Tarjetas *Compañías propias* y *Tipos de seguro*.
 * **Acciones disponibles**:
   * `Añadir`: Permite dar de alta un nuevo nombre (p. ej., «Allianz», «Mapfre», o ramos como «Auto», «Hogar», «Responsabilidad Civil»).
   * `Editar`: Modificar la denominación comercial.
@@ -130,7 +135,7 @@ Permite registrar las entidades aseguradoras con las que opera la correduría y 
 Permite crear plantillas de remuneración pactadas con las entidades para asociarlas explícitamente a los periodos de las pólizas.
 
 ### 5.1 Parámetros de configuración
-* **Ubicación en la interfaz**: Pestaña **Configuración** → Tarjeta *Condiciones de remuneración*.
+* **Ubicación en la interfaz**: Pestaña **Configuración** → sección **💶 Remuneración** → Tarjeta *Condiciones de remuneración*.
 * **Campos**:
   * `Compañía`: Aseguradora de aplicación.
   * `Ramo`: Tipo de seguro.
@@ -191,7 +196,7 @@ El asistente de consulta puede trabajar sin modelo de lenguaje (consulta matemá
 
 ### 8.1 Ventana emergente «Añadir suscripción» y protocolos de conexión disponibles
 Puede configurar la conexión del modelo desde dos lugares de la interfaz web:
-* **Pestaña `Configuración`** → tarjeta **Modelos de IA y Suscripciones** → botón **Añadir suscripción**.
+* **Pestaña `Configuración`** → sección **🤖 Asistente IA** → tarjeta **Modelos de IA y Suscripciones** → botón **Añadir suscripción** (muestra además el resumen de protocolo, modelo activo, alcance de datos y el botón **Ajustes avanzados y memoria**).
 * **Ventana `Consultar asistente`** → tarjeta **Proveedor y memoria** → botón **Añadir suscripción** (o desplegable *Ajustes avanzados de proveedor y memoria*).
 
 Al pulsar **Añadir suscripción**, se abre una **ventana emergente** que permite elegir entre dos modalidades de conexión:
@@ -200,7 +205,7 @@ Al pulsar **Añadir suscripción**, se abre una **ventana emergente** que permit
    * Permite utilizar su suscripción personal o profesional de ChatGPT (**Plus** o **Pro**) sin necesidad de clave API ni saldo adicional de pago por uso.
    * Integra el flujo OAuth automático de OpenCode (`client_id = app_EMoamEEZ73f0CkXaXp7hrann`) y el motor Codex Responses (`https://chatgpt.com/backend-api/codex/responses`).
    * **Se vincula de forma 100 % automática desde la interfaz web**, sin necesidad de usar la consola ni copiar ficheros por SSH (véase el procedimiento paso a paso en la [Sección 11.3](#113-suscripción-de-chatgpt-plus--pro-vinculación-automática-desde-la-web)).
-   * Modelos disponibles para la suscripción: `gpt-5.4` (seleccionado automáticamente al vincular), `gpt-5.4-mini`, `gpt-5.3-codex`, `gpt-5.3-codex-spark`, `gpt-5-codex` y `gpt-4o`.
+   * Modelos disponibles para la suscripción: `gpt-5.6-luna` (seleccionado automáticamente al vincular), `gpt-5.6-terra`, `gpt-5.6-sol`, `gpt-6-luna`, `gpt-6-sol`, `gpt-6-astra` y `gpt-6.1-sol` (el catálogo puede actualizarse en tiempo real mediante **🔄 Modelos**; si hubiera guardado un modelo antiguo obsoleto, el sistema lo repara automáticamente seleccionando `gpt-5.6-luna`).
 2. **Clave API (`openai_compatible`)**:
    * Utiliza cualquier proveedor que implemente el protocolo estándar de OpenAI (`/v1/chat/completions`).
    * Sirve para la API oficial de OpenAI Platform, Groq, Mistral, o servidores locales autoalojados como **Ollama** o **LM Studio**.
@@ -221,44 +226,75 @@ Al pulsar **Añadir suscripción**, se abre una **ventana emergente** que permit
 ### 8.3 Memoria histórica
 * `Conservar consultas cifradas`: Almacena el texto de las preguntas y respuestas en la base de datos local bajo cifrado AES-256.
 * `Retención de memoria en días`: Tiempo de conservación antes de purgar consultas antiguas (`0` = conservar sin purga).
-* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 10 (Asistente de Consulta)](manual-usuario.md#10-asistente-de-consulta-ia-y-consultas-directas).
+* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 10 (Asistente de Consulta)](manual-usuario.md#10-asistente-de-consulta-chatbot-ia-y-consultas-directas).
 
 ---
 
 ## 9. Canal de Actualizaciones Firmadas
 
-El sistema dispone de un mecanismo de actualización seguro mediante firmas criptográficas asimétricas Ed25519, garantizando que el servidor solo reciba paquetes oficiales verificados.
+El sistema dispone de un mecanismo de actualización seguro mediante firmas criptográficas asimétricas Ed25519, garantizando que el servidor solo reciba e instale paquetes oficiales verificados y autorizados para su instalación.
 
 ### 9.1 Variables de entorno del sistema (`/etc/correduria/application.env`)
-Estas opciones se configuran a nivel de servidor por el operador o instalador técnico:
-* `CORREDURIA_UPDATE_MANIFEST_URL`: URL HTTPS donde se publica el fichero `manifest.json` del nuevo release (p. ej., en los releases de GitHub del proyecto).
-* `CORREDURIA_UPDATE_PUBLIC_KEY_FILE`: Ruta absoluta en el servidor al fichero con la clave pública Ed25519 del distribuidor (p. ej., `/etc/correduria/release-public.key`).
-* `CORREDURIA_UPDATE_ENTITLEMENT_FILE`: Ruta absoluta al fichero de derecho de actualización firmado para esa instalación específica (`installation_id`), que delimita el periodo de mantenimiento contratado (p. ej., `/etc/correduria/entitlement.json`).
+Estas opciones se definen a nivel de sistema operativo (no son editables por la IA ni por la web). El paquete oficial `.deb` y el instalador guiado dejan preconfigurado `/etc/correduria/application.env`:
+* `CORREDURIA_UPDATE_MANIFEST_URL`: URL HTTPS donde se publica el fichero `manifest.json` firmado del último release según arquitectura (`https://github.com/pericorl-tech/correduria-release/releases/latest/download/manifest-latest.json` en `arm64`, o `.../manifest-latest-amd64.json` en `amd64`).
+* `CORREDURIA_UPDATE_PUBLIC_KEY_FILE`: Ruta absoluta en el servidor al fichero con la clave pública Ed25519 del distribuidor (por defecto `/etc/correduria/release-public.key`, con permisos `0640` `root:correduria-local` dentro de `/etc/correduria` `0755`).
+* `CORREDURIA_UPDATE_ENTITLEMENT_FILE`: Ruta absoluta al fichero de derecho de actualización firmado para esa instalación específica (por defecto `/etc/correduria/entitlement.json`), que delimita el periodo de mantenimiento contratado. Puede consultar y copiar el `installation_id` necesario para emitir o renovar este derecho desde **Mantenimiento → Actualizaciones del sistema** (**Copiar ID**).
 
-### 9.2 Descarga y aplicación de paquetes
-* Desde la interfaz (pestaña **Mantenimiento**), el usuario puede pulsar *Comprobar actualizaciones* y *Descargar actualización firmada*.
-* El paquete descargado se ubica en el área de preparación (`staging`).
-* La instalación efectiva en el sistema operativo la ejecuta el operador con permisos de administración (`sudo`) mediante el comando verificado:
-  ```bash
-  sudo correduria-server update-install \
-    --manifest /var/lib/correduria/updates/manifest-<version>.json \
-    --package /var/lib/correduria/updates/correduria-local_<version>_<arch>.deb \
-    --public-key /etc/correduria/release-public.key \
-    --entitlement /etc/correduria/entitlement.json \
-    --data-dir /var/lib/correduria
-  ```
-* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 12 (Mantenimiento)](manual-usuario.md#12-mantenimiento-y-diagnóstico-operativo).
+### 9.2 Descarga, actualización en 1 clic y aplicación manual
+* **Actualización verificada en 1 clic (por defecto en paquete DEB con `systemd.path`)**:
+  1. El paquete `.deb` habilita la unidad `correduria-updater.path` junto con `correduria-updater.service`, que vigila la aparición de `/var/lib/correduria/updates/apply.request`.
+  2. Desde **Mantenimiento → Actualizaciones del sistema**, pulse **Comprobar actualizaciones**. Si existe una nueva versión compatible y con derecho vigente, aparecerá el botón **Actualizar ahora a vX.Y.Z**.
+  3. Al confirmarlo con su contraseña de la aplicación, el servidor descarga el paquete a `/var/lib/correduria/updates/`, valida la firma Ed25519 y el SHA-256, y crea `apply.request`.
+  4. Inmediatamente, `systemd` ejecuta `/usr/sbin/correduria-apply-update` (`correduria-server apply-staged-update` como `root`), que copia el paquete y su manifiesto a un directorio temporal privado de `root`, revalida firma, hash, tamaño, compatibilidad (`glibc`/arquitectura) y `entitlement.json`, ejecuta `dpkg --install`, reinicia `correduria-local.service` y escribe el estado final en `/var/lib/correduria/updates/apply.status.json`.
+  5. La interfaz web espera el reinicio y se recarga automáticamente en la nueva versión. **Sin acción y contraseña del usuario, la aplicación nunca se actualiza sola.**
+* **Descarga a staging y aplicación manual por CLI**:
+  * Si lo prefiere, puede pulsar **Descargar actualización firmada** para dejar el paquete en `/var/lib/correduria/updates/correduria-local_<version>_<arch>.deb` junto con su manifiesto `correduria-local_<version>_<arch>.deb.manifest.json`.
+  * En entornos sin `correduria-updater.path` activo (o para instalar manualmente desde terminal como administrador), ejecute:
+    ```bash
+    # Opción directa si ya está descargado en staging:
+    sudo /usr/sbin/correduria-apply-update
+
+    # O indicando explícitamente manifiesto y paquete:
+    sudo /opt/correduria/bin/correduria-server update-install \
+      --manifest /var/lib/correduria/updates/correduria-local_<version>_<arch>.deb.manifest.json \
+      --package /var/lib/correduria/updates/correduria-local_<version>_<arch>.deb \
+      --public-key /etc/correduria/release-public.key \
+      --entitlement /etc/correduria/entitlement.json \
+      --data-dir /var/lib/correduria
+    ```
+* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 12.4 (Canal de actualizaciones)](manual-usuario.md#124-canal-de-actualizaciones-firmadas).
 
 ---
 
 ## 10. Mantenimiento y Diagnóstico del Sistema
 
+### 10.1 Diagnóstico de estado y sondas
 Permite monitorizar el estado interno de la plataforma. La mayoría de los datos provienen de la introspección del sistema operativo y de la base de datos:
+* `Versión y origen`: Versión de la aplicación, versión del esquema SQLite, plataforma/arquitectura y origen público (`HTTPS` o `HTTP` permitido únicamente en loopback).
+* `Espacio libre`: Bytes disponibles en la partición de almacenamiento de datos.
+* `Permisos`: Comprobación de que `application.db`, `secret.key` y `backup-recovery.key` mantienen permisos privados (`0600`, sin acceso para grupo ni otros).
+* `Sondas bajo demanda`: Pruebas auditadas de correo saliente (SMTP), proveedor de IA, destino de backups y restauración aislada sin iniciar servicios.
 
-* `Espacio libre`: Bytes disponibles en la partición de almacenamiento.
-* `Permisos`: Comprobación de que `secret.key`, `application.db` y el directorio de datos tienen permisos estrictos (`0600` / `0700`).
-* `Origen`: Verifica si la conexión opera bajo HTTPS o si está en HTTP (solo tolerado en `127.0.0.1`).
-* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 12 (Mantenimiento)](manual-usuario.md#12-mantenimiento-y-diagnóstico-operativo).
+### 10.2 Acceso multi-origen (LAN Bonjour y Tailscale)
+La aplicación valida el origen HTTP(S) de las peticiones y genera las sesiones y enlaces de recuperación según los orígenes autorizados en `/etc/correduria/application.env`:
+* `CORREDURIA_PUBLIC_URL`: Origen principal de acceso.
+* `CORREDURIA_ADDITIONAL_PUBLIC_URLS`: Lista opcional separada por comas de orígenes públicos adicionales permitidos (p. ej., `https://equipo.red.ts.net` además de `https://equipo.local`). Cuando se configura más de un origen, **todos** deben utilizar `https://`. Las sesiones son independientes por cada dominio y los enlaces de recuperación usan el origen desde el que se solicitan.
+* **Perfil automatizado para servidor Ubuntu dedicado (`correduria-configure-access`)**: Con `caddy` y `avahi-daemon` instalados, el operador puede ejecutar:
+  ```bash
+  # Solo LAN local (https://<hostname>.local/):
+  sudo correduria-configure-access
+
+  # LAN local + acceso remoto Tailscale simultáneo:
+  sudo correduria-configure-access equipo.tailnet.ts.net
+  ```
+  El script guarda copia de seguridad de `/etc/caddy/Caddyfile` y `/etc/correduria/application.env` en `/var/backups/correduria-access.*`, configura Caddy con `tls internal` para `<hostname>.local` (y el dominio `.ts.net` si se indica, requiriendo `TS_PERMIT_CERT_UID=caddy` en `tailscaled`), exporta el certificado público CA de Caddy y reinicia los servicios.
+
+### 10.3 Certificado HTTPS local para dispositivos cliente
+Cuando la instalación publica un certificado TLS emitido por una autoridad certificadora local (como Caddy `tls internal` en la LAN):
+* `CORREDURIA_LOCAL_CA_CERT_FILE`: Ruta al certificado raíz público PEM expuesto en solo lectura a los usuarios autenticados (por defecto `/etc/correduria/local-ca-root.crt`).
+* Subcomando `correduria-server export-ca --source <ruta-ca> --output /etc/correduria/local-ca-root.crt`: Valida que el fichero sea un certificado público X.509 válido, rechaza cualquier archivo que contenga material de clave privada (`PRIVATE KEY`) y escribe el PEM limpio con permisos `0644`. El script `postinst` del paquete DEB, `correduria-configure-access` y `installer-linux/install.sh` (modo Caddy) lo exportan automáticamente desde `/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt`.
+* Cuando este fichero existe y es válido, la tarjeta **Certificado HTTPS para sus dispositivos** en **Mantenimiento** muestra la huella SHA-256 y permite descargar instaladores listos para Mac/iPhone/iPad (`.mobileconfig`, `.command`), Windows (`.cmd`), Linux (`.sh`) y Android/manual (`.crt`).
+* **Referencia en el Manual de Usuario**: [Manual de Usuario · Sección 12.5 (Certificado HTTPS para sus dispositivos)](manual-usuario.md#125-certificado-https-para-sus-dispositivos).
 
 ---
 
@@ -276,14 +312,14 @@ Muchos proveedores de correo actuales no admiten la contraseña convencional de 
 3. En el buscador superior de la configuración de cuenta, escriba **Contraseñas de aplicaciones**.
 4. Cree una nueva contraseña indicando como nombre «Correduría Local».
 5. Google mostrará una clave de 16 letras (p. ej., `abcd efgh ijkl mnop`).
-6. En la aplicación de Correduría (pestaña *Configuración* → *Correo de recuperación*):
+6. En la aplicación de Correduría (pestaña *Configuración* → sección *Cuenta y correo* → *Correo de recuperación*):
    * `Servidor SMTP`: `smtp.gmail.com`
    * `Puerto`: `587`
    * `Seguridad`: `STARTTLS`
    * `Dirección del remitente`: Su dirección completa de correo de Gmail.
    * `Usuario SMTP`: Su dirección completa de correo de Gmail.
    * `Contraseña del correo`: La clave generada de 16 caracteres (sin espacios).
-7. Pulse *Enviar un enlace de recuperación de prueba* para verificar que el correo llega a su bandeja de entrada.
+7. Pulse **Enviar correo de prueba** para verificar que el correo llega a su bandeja de entrada.
 
 #### Ejemplo con Microsoft 365 / Outlook:
 1. Acceda al portal de administración o configuración de seguridad de Microsoft.
@@ -306,7 +342,7 @@ Para utilizar modelos a través del protocolo estándar con clave API:
    * Si usa un proveedor compatible (Groq, Mistral, Together): Acceda a su panel de control y genere una clave API equivalente.
    * Si usa **Ollama en local**: No se requiere clave API (puede escribir cualquier texto, como `ollama`).
 2. **Introducir la clave en la ventana emergente «Añadir suscripción»**:
-   * En la pestaña **Configuración** (tarjeta *Modelos de IA y Suscripciones*) o dentro de **Consultar asistente**, pulse el botón **Añadir suscripción**.
+   * En la pestaña **Configuración** (sección *Asistente IA* → tarjeta *Modelos de IA y Suscripciones*) o dentro de **Consultar asistente**, pulse el botón **Añadir suscripción**.
    * En la ventana emergente, seleccione la tarjeta **Clave API (API Key)**.
    * En `API Base URL`, indique `https://api.openai.com/v1` (o la URL de su servidor local, p. ej., `http://127.0.0.1:11434/v1`).
    * En `Modelo servido por el endpoint`, indique el nombre exacto del modelo (p. ej., `gpt-4o-mini`).
@@ -347,7 +383,7 @@ sequenceDiagram
 
 #### Procedimiento automático paso a paso (Recomendado — Sin consola ni SSH):
 
-1. En la aplicación web de Correduría, vaya a la pestaña **Configuración** (tarjeta *Modelos de IA y Suscripciones*) o abra el asistente flotante / **Consultar asistente** y pulse el botón **Añadir suscripción** (o el icono ⚙️ en el chat).
+1. En la aplicación web de Correduría, vaya a la pestaña **Configuración** (sección *Asistente IA* → tarjeta *Modelos de IA y Suscripciones*) o abra el asistente flotante / **Consultar asistente** y pulse el botón **Añadir suscripción** (o el icono ⚙️ en el chat).
 2. En la ventana emergente, asegúrese de que esté seleccionada la opción **Suscripción ChatGPT Plus / Pro**.
 3. En **Método de autorización automática**, deje seleccionado **Código web automático (Recomendado · funciona en local o servidor en red)** (o elija *Navegador en este mismo equipo* si está abriendo la web directamente en la misma máquina donde corre el servidor).
 4. Pulse **Iniciar vinculación automática con ChatGPT** (se inicia directamente al disponer ya de sesión web activa).
@@ -362,7 +398,7 @@ sequenceDiagram
 9. **Historial de consultas**: Las consultas y respuestas se almacenan cifradas con la clave de la instalación (`secret.key`). Para consultar el historial en el chat durante su sesión activa, ya no es necesario introducir la contraseña de la aplicación en cada lectura. La contraseña solo se solicita si desea eliminar definitivamente un registro del historial.
 
 #### Desvinculación o revocación
-* Para desvincular la cuenta en cualquier momento, pulse el botón **Desvincular cuenta de ChatGPT** (en la pestaña *Configuración* o dentro de *Consultar asistente*). El servidor revocará los tokens ante OpenAI y eliminará el archivo local `chatgpt-credentials.json`.
+* Para desvincular la cuenta en cualquier momento, pulse el botón **Desvincular cuenta de ChatGPT** (en la pestaña *Configuración* → *Asistente IA* o dentro de *Consultar asistente*). El servidor revocará los tokens ante OpenAI y eliminará el archivo local `chatgpt-credentials.json`.
 
 #### Alternativa opcional por línea de comandos (CLI `chatgpt-login` / `chatgpt-import`)
 Si en un entorno sin acceso directo desde la interfaz web un administrador de sistemas prefiere importar manualmente un archivo de credenciales generado por CLI (`correduria chatgpt-login` y `correduria chatgpt-import`), el servidor mantiene compatibilidad total con los comandos detallados en la documentación técnica del Sprint S07.
@@ -373,7 +409,10 @@ Si en un entorno sin acceso directo desde la interfaz web un administrador de si
 
 La información gestionada por una correduría de seguros incluye datos de alta confidencialidad (documentos identificativos, autorizaciones de corretaje, contratos de seguro y datos de contacto). La custodia de esta información requiere medidas técnicas y organizativas rigurosas.
 
-### 12.1 El riesgo del almacenamiento único en el miniPC / Raspberry Pi
+### 12.1 El riesgo del almacenamiento único en el equipo de instalación
+
+> [!NOTE]
+> A lo largo de este manual, **el equipo de instalación** es el ordenador físico donde corre la plataforma (un mini PC, un equipo de escritorio o un pequeño servidor). Su nombre es el ***hostname*** del sistema, un elemento **definido por usted durante la instalación** (en el instalador guiado: pregunta *Nombre del equipo*, variable `EQUIPO_NOMBRE`; p. ej. `correduria-oficina`): ese nombre identifica al servidor en la red privada Tailscale, en los certificados TLS y en los resúmenes de avisos.
 
 > [!CAUTION]
 > El directorio de backup configurado por defecto (`/var/lib/correduria/backups`) es una **zona de preparación técnica (staging)** dentro del propio servidor.
@@ -381,7 +420,7 @@ La información gestionada por una correduría de seguros incluye datos de alta 
 > **Una copia de seguridad ubicada en el mismo disco o tarjeta de memoria que la base de datos viva no protege ante:**
 > * Avería de hardware o corrupción de la tarjeta MicroSD / disco SSD.
 > * Sobretensión eléctrica o fallo de la fuente de alimentación.
-> * Robo físico o extravío del miniPC.
+> * Robo físico o extravío del equipo de instalación.
 > * Daños por siniestros (incendio, inundación en la oficina).
 >
 > Si el dispositivo físico se daña, **se perderán simultáneamente tanto los datos de producción como todas las copias de seguridad**.
@@ -393,8 +432,8 @@ La información gestionada por una correduría de seguros incluye datos de alta 
 Se recomienda encarecidamente implementar el principio **3-2-1** adaptado al entorno de la correduría:
 
 ```
-[ Datos Vivos en la Raspberry Pi ]
-                │
+[ Datos Vivos en el Equipo de Instalación ]
+                │  (hostname p. ej. correduria-oficina)
                 ▼ (Backup diario cifrado CRBK1)
        [ Staging Local ] (/var/lib/correduria/backups)
                 │
@@ -418,7 +457,7 @@ compartida de la oficina        Almacenamiento Cloud cifrado
   * Acceda semanalmente a la pestaña **Backups** y pulse **Descargar** sobre la copia más reciente.
   * Mueva el archivo `.crbk` a una unidad USB cifrada (p. ej., mediante BitLocker o LUKS).
 * **Opción C: Script automatizado de réplica externa (*Pull-backup*)**:
-  * Un equipo secundario o NAS inicia sesión por SSH con permisos restringidos en la Raspberry Pi y extrae los archivos `.crbk` mediante `rsync` hacia su propio almacenamiento seguro.
+  * Un equipo secundario o NAS inicia sesión por SSH con permisos restringidos en el equipo de instalación (el *hostname* que se definió al instalar) y extrae los archivos `.crbk` mediante `rsync` hacia su propio almacenamiento seguro.
 
 ---
 
@@ -482,6 +521,7 @@ Si el servidor original queda destruido y se dispone de un nuevo equipo con Ubun
 
 1. **Acceso exclusivo por HTTPS en escritorio, tablet y móvil**:
    * Cuando acceda a la plataforma desde otros dispositivos de la oficina o en movilidad (portátiles, tablets, teléfonos móviles), la conexión debe circular siempre a través de un proxy local con cifrado HTTPS (p. ej., mediante Caddy o Tailscale con certificado TLS). Nunca transmita contraseñas ni descargue ficheros confidenciales por HTTP plano en la red corporativa.
+   * Si utiliza Caddy con autoridad certificadora local (`tls internal`), instale el certificado raíz público en sus dispositivos desde **Mantenimiento → Certificado HTTPS para sus dispositivos** y compruebe su **huella SHA-256** antes de otorgar confianza.
 2. **Uso de la seudonimización, Vista 360° y bloqueo inmediato de la Bóveda (`🔒 / 🔓`)**:
    * Acostúmbrese a operar en el día a día utilizando los códigos de cliente tanto en la vista de **Tarjetas** como en **Tabla**.
    * Desbloquee los datos personales (*Ver datos* o *Desbloquear identidad ahora* en la *Vista 360°*) únicamente cuando sea imprescindible para la gestión de un siniestro, emisión o suplemento.
@@ -500,16 +540,18 @@ Si el servidor original queda destruido y se dispone de un nuevo equipo con Ubun
 
 | Opción de Configuración | Dónde se Configura | Afecta a este Apartado del Manual de Usuario |
 |---|---|---|
-| **Cuenta local y contraseña** | Setup inicial / Configuración → Seguridad | [Manual Usuario · Sección 1 (Acceso y Seguridad)](manual-usuario.md#1-acceso-y-seguridad-de-la-sesión) |
-| **Servidor SMTP (Host, Puerto, TLS, Clave)** | Configuración → Correo de recuperación | [Manual Usuario · Secciones 1.3 (Recuperación) y 5 (Avisos)](manual-usuario.md#13-recuperación-de-contraseña-forgot--reset) |
-| **Formato de Códigos de Cliente (Patrón)** | Configuración → Códigos de cliente | [Manual Usuario · Sección 6 (Clientes)](manual-usuario.md#6-gestión-de-clientes) |
-| **Catálogo de Compañías Aseguradoras** | Configuración → Compañías propias | [Manual Usuario · Sección 7 (Pólizas) y Secciones 3-4 (Filtros)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
-| **Catálogo de Tipos de Seguro (Ramos)** | Configuración → Tipos de seguro | [Manual Usuario · Sección 7 (Pólizas) y Secciones 3-4 (Filtros)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
-| **Plantillas de Remuneración (Comisiones)** | Configuración → Condiciones de remuneración | [Manual Usuario · Sección 7 (Pólizas y Renovación)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
+| **Cuenta local y contraseña** | Setup inicial / Configuración → Cuenta y correo → Seguridad | [Manual Usuario · Sección 1 (Acceso y Seguridad)](manual-usuario.md#1-acceso-y-seguridad-de-la-sesión) |
+| **Servidor SMTP (Host, Puerto, TLS, Clave)** | Configuración → Cuenta y correo → Correo de recuperación | [Manual Usuario · Secciones 1.3 (Recuperación) y 5 (Avisos)](manual-usuario.md#13-recuperación-de-contraseña-forgot--reset) |
+| **Formato de Códigos de Cliente (Patrón)** | Configuración → Cartera y catálogos → Códigos de cliente | [Manual Usuario · Sección 6 (Clientes)](manual-usuario.md#6-gestión-de-clientes) |
+| **Catálogo de Compañías Aseguradoras** | Configuración → Cartera y catálogos → Compañías propias | [Manual Usuario · Sección 7 (Pólizas) y Secciones 3-4 (Filtros)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
+| **Catálogo de Tipos de Seguro (Ramos)** | Configuración → Cartera y catálogos → Tipos de seguro | [Manual Usuario · Sección 7 (Pólizas) y Secciones 3-4 (Filtros)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
+| **Plantillas de Remuneración (Comisiones)** | Configuración → Remuneración → Condiciones de remuneración | [Manual Usuario · Sección 7 (Pólizas y Renovación)](manual-usuario.md#7-gestión-de-pólizas-y-periodos) |
 | **Política de Notificaciones (Anticipación, Hora)** | Avisos → Política de vencimientos y correo | [Manual Usuario · Secciones 3 (Resumen) y 5 (Avisos)](manual-usuario.md#5-avisos-y-notificaciones) |
 | **Política de Backups (Hora, Destino, Retención)** | Backups → Guardar política | [Manual Usuario · Sección 11 (Copias de Seguridad)](manual-usuario.md#11-copias-de-seguridad-uso-del-operador) |
-| **Proveedor IA (API OpenAI o ChatGPT Plan)** | Asistente → Proveedor y memoria | [Manual Usuario · Sección 10 (Asistente de Consulta)](manual-usuario.md#10-asistente-de-consulta-ia-y-consultas-directas) |
-| **Permisos de datos IA (PDFs, Historial)** | Asistente → Proveedor y memoria | [Manual Usuario · Sección 10.3 (Modalidades de consulta)](manual-usuario.md#103-modalidades-de-consulta) |
-| **Memoria histórica y Retención** | Asistente → Proveedor y memoria | [Manual Usuario · Sección 10.5 (Memoria histórica)](manual-usuario.md#105-memoria-histórica) |
-| **Canal de Actualizaciones y Entitlement** | `/etc/correduria/application.env` y Mantenimiento | [Manual Usuario · Sección 12.4 (Canal de actualizaciones)](manual-usuario.md#124-canal-de-actualizaciones-firmadas) |
-| **Sondas de Mantenimiento (SMTP, IA, Restore)** | Mantenimiento → Comprobaciones | [Manual Usuario · Sección 12.3 (Comprobaciones disponibles)](manual-usuario.md#123-comprobaciones-disponibles-sondas-bajo-demanda) |
+| **Proveedor IA (API OpenAI o ChatGPT Plan)** | Configuración → Asistente IA / Consultar asistente → Añadir suscripción | [Manual Usuario · Sección 10 (Asistente de Consulta)](manual-usuario.md#10-asistente-de-consulta-chatbot-ia-y-consultas-directas) |
+| **Permisos de datos IA (PDFs, Historial)** | Configuración → Asistente IA → Ajustes avanzados y memoria | [Manual Usuario · Sección 10.3 (Conexión rápida)](manual-usuario.md#103-conexión-rápida-añadir-suscripción-y-ajustes) |
+| **Memoria histórica y Retención** | Consultar asistente → Ajustes avanzados y memoria | [Manual Usuario · Sección 10.4 (Historial)](manual-usuario.md#104-consulta-de-historial-cómoda-y-sin-contraseñas-repetitivas) |
+| **Acceso multi-origen (LAN / Tailscale)** | `/etc/correduria/application.env` y `correduria-configure-access` | [Manual Usuario · Sección 1.3 (Recuperación)](manual-usuario.md#13-recuperación-de-contraseña-forgot--reset) |
+| **Certificado HTTPS local (CA dispositivos)** | `CORREDURIA_LOCAL_CA_CERT_FILE` y Mantenimiento | [Manual Usuario · Sección 12.5 (Certificado HTTPS)](manual-usuario.md#125-certificado-https-para-sus-dispositivos) |
+| **Canal de Actualizaciones (1 clic / CLI) y Entitlement** | `/etc/correduria/application.env`, `correduria-updater.path` y Mantenimiento | [Manual Usuario · Sección 12.4 (Canal de actualizaciones)](manual-usuario.md#124-canal-de-actualizaciones-firmadas) |
+| **Sondas de Mantenimiento (SMTP, IA, Restore)** | Mantenimiento → Estado de la instalación | [Manual Usuario · Sección 12.3 (Comprobaciones disponibles)](manual-usuario.md#123-comprobaciones-disponibles-sondas-bajo-demanda) |

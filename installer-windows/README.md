@@ -14,7 +14,7 @@ El mecanismo de actualizaciones firmadas (manifiesto Ed25519 + verificación + `
 
 | Sistema | Quién aplica la actualización |
 |---|---|
-| Linux (hoy) | El propio binario `correduria-server` (subcomando `update-install`, envuelto por dpkg) |
+| Linux (hoy) | El propio binario `correduria-server` (`update-install` manual y `apply-staged-update` en 1 clic vía `correduria-updater.path`, envuelto por dpkg) |
 | Windows (objetivo) | Deberá implementarse el subcomando equivalente en `correduria-server.exe` — **pendiente, repositorio privado** (fase 2) |
 | Windows (mientras tanto) | Este repositorio incluye `tools/Update-Correduria.ps1`: aplicador externo de fase piloto (para servicio, verifica SHA-256, sustituye ficheros, arranca servicio) |
 
@@ -58,14 +58,14 @@ El asistente pregunta (iguales conceptos que en Linux):
 El binario `correduria-local_<versión>_win32-x64.zip` **no puede compilarse desde Linux** (PyInstaller no hace compilación cruzada): se genera en un runner Windows mediante GitHub Actions.
 
 1. El workflow está en [`ci/build-windows.yml`](ci/build-windows.yml) (copia de referencia). Colóquelo en el repo privado `correduria` como `.github/workflows/build-windows.yml` (interfaz web de GitHub → Actions → *New workflow* → pegar y confirmar; el token almacenado en puestos sin scope `workflow` no puede subirlo por git).
-2. En el repo privado, ejecute **Actions → Build Windows x64 (win64) → Run workflow** sobre la rama `feature/win64-build` (contiene `build_binary.py` ya adaptado a Windows).
+2. En el repo privado, asegúrese de que la rama `feature/win64-build` incorpore los cambios de la versión objetivo (p. ej., `v1.0.0`) y ejecute **Actions → Build Windows x64 (win64) → Run workflow** sobre ella.
 3. Descargue el artefacto `correduria-local_<versión>_win32-x64` de la ejecución y úselo con este instalador:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\Setup-Correduria.ps1 -Package C:\descargas\correduria-local_0.8.3_win32-x64.zip
+powershell -ExecutionPolicy Bypass -File .\Setup-Correduria.ps1 -Package C:\descargas\correduria-local_1.0.0_win32-x64.zip
 ```
 
-> La rama `feature/win64-build` del repo privado solo cambia `scripts/build_binary.py` (separador `--add-data` por plataforma y eliminación del bloqueo a Linux); el resto de la aplicación **ya era compatible con Windows** (el límite `resource` del lector PDF y `geteuid` están protegidos con guards; los `chmod` no rompen nada en NTFS).
+> La rama `feature/win64-build` del repo privado solo cambia `scripts/build_binary.py` (separador `--add-data` por plataforma y eliminación del bloqueo a Linux); el resto de la aplicación **ya era compatible con Windows** (el límite `resource` del lector PDF y `geteuid` están protegidos con guards; los `chmod` no rompen nada en NTFS; desde `v0.8.5`, la app incluye además `export-ca` y exportación de script Windows `.cmd` para certificados CA locales).
 
 ## Fases de este repositorio
 
